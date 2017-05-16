@@ -1,0 +1,19 @@
+language: r
+sudo: false
+r_check_args: "--as-cran --run-donttest"
+
+os:
+  - linux
+  - osx
+
+r_github_packages:
+    - jimhester/covr
+    - mlr-org/mlr
+    - berndbischl/BBmisc
+    - berndbischl/ParamHelpers
+
+cache:
+  packages: true
+
+after_success:
+  - Rscript -e 'library(covr);codecov()'
