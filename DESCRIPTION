@@ -9,7 +9,8 @@ Depends:
 Suggests: 
     testthat,
     rpart,
-    mmpf
+    mmpf,
+    margins
 Imports:
     BBmisc (>= 1.11),
     checkmate (>= 1.8.2),

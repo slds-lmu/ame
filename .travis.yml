@@ -6,11 +6,13 @@ os:
   - linux
   - osx
 
+r_packages:
+  - covr
+
 r_github_packages:
-    - jimhester/covr
-    - mlr-org/mlr
-    - berndbischl/BBmisc
-    - berndbischl/ParamHelpers
+  - mlr-org/mlr
+  - berndbischl/BBmisc
+  - berndbischl/ParamHelpers
 
 cache:
   packages: true

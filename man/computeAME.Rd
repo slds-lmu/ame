@@ -4,7 +4,8 @@
 \alias{computeAME}
 \title{Compute Average Marginal Effects}
 \usage{
-computeAME(model, data, features, ...)
+computeAME(model, data, features, at = NULL, predict.fun = function(object,
+  newdata) predict(object, newdata = newdata), ...)
 }
 \arguments{
 \item{model}{[\code{\link[mlr]{WrappedModel}} | \code{any}]\cr
@@ -15,6 +16,14 @@ The data set that was used to fit the model.}
 
 \item{features}{[\code{logical(1)}]\cr
 The features for which the average marginal effects should be computed.}
+
+\item{predict.fun}{[\code{function(1)}]\cr
+The function that should be used to generate predictions from \code{model}.
+This function must have two arguments, \code{object} and \code{newdata}
+The default is the predict method for \code{model}.
+If \code{model} is of class \code{\link[mlr]{WrappedModel}}, the default tries to use
+\code{\link[mlr]{getPredictionProbabilities}} or \code{\link[mlr]{getPredictionResponse}}
+depending on whether \code{model} is a classification or regression problem.}
 
 \item{...}{Further options passed down to the \code{\link[numDeriv]{grad}} function.}
 }
