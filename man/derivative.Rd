@@ -27,6 +27,8 @@ The default is the predict method for \code{model}.
 If \code{model} is of class \code{\link[mlr]{WrappedModel}}, the default tries to use
 \code{\link[mlr]{getPredictionProbabilities}} or \code{\link[mlr]{getPredictionResponse}}
 depending on whether \code{model} is a classification or regression problem.}
+
+\item{...}{Further options passed down to the \code{\link[numDeriv]{grad}} function.}
 }
 \description{
 Computes the derivative of a feature at point or vector x.

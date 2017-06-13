@@ -6,6 +6,8 @@
 #' @template arg_data
 #' @param features [\code{logical(1)}]\cr
 #'   The features for which the average marginal effects should be computed.
+#' @param at [\code{list}]\cr
+#'   (optional) A named list of vectors where the values specify at which points the marginal effects are calculated (i.e. the values are held constant).
 #' @template arg_predict.fun
 #' @param ...
 #'   Further options passed down to the \code{\link[numDeriv]{grad}} function.
@@ -15,7 +17,7 @@ computeAME = function(model, data, features, at = NULL,
   predict.fun = function(object, newdata) predict(object, newdata = newdata), ...) {
   assertDataFrame(data)
   assertSubset(features, colnames(data))
-  assertList(at, null.ok = TRUE)
+  assertList(at, types = "vector", null.ok = TRUE)
   assertFunction(predict.fun, args = c("object", "newdata"))
 
   if (is.null(at)) {

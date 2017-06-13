@@ -9,6 +9,8 @@
 #' @template arg_data
 #' @template arg_model
 #' @template arg_predict.fun
+#' @param ...
+#'   Further options passed down to the \code{\link[numDeriv]{grad}} function.
 #'
 derivative = function(x, feature, data, model,
   predict.fun = function(object, newdata) predict(object, newdata = newdata), ...) {

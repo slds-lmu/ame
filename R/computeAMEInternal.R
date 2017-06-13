@@ -9,10 +9,10 @@ computeAMEInternal.WrappedModel = function(model, data, features, predict.fun = 
   if (is.null(predict.fun)) {
     if (tt == "classif") {
       predict.fun = function(object, newdata)
-        getPredictionProbabilities(predict(object, newdata = newdata))
+        mlr::getPredictionProbabilities(predict(object, newdata = newdata))
     } else if (tt == "regr") {
       predict.fun = function(object, newdata)
-        getPredictionResponse(predict(object, newdata = newdata))
+        mlr::getPredictionResponse(predict(object, newdata = newdata))
     }
   }
   computeAMEInternal.default(model, data, features, predict.fun = predict.fun, ...)

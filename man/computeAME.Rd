@@ -17,6 +17,9 @@ The data set that was used to fit the model.}
 \item{features}{[\code{logical(1)}]\cr
 The features for which the average marginal effects should be computed.}
 
+\item{at}{[\code{list}]\cr
+(optional) A named list of vectors where the values specify at which points the marginal effects are calculated (i.e. the values are held constant).}
+
 \item{predict.fun}{[\code{function(1)}]\cr
 The function that should be used to generate predictions from \code{model}.
 This function must have two arguments, \code{object} and \code{newdata}
