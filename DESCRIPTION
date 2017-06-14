@@ -4,18 +4,18 @@ Version: 1.0
 Authors@R: person("Giuseppe", "Casalicchio", email = "giuseppe.casalicchio@stat.uni-muenchen.de", role = c("aut", "cre"))
 Description: Compute average marginal effects for all models.
 Depends:
-    R (>= 3.0.2),
-    mlr (>= 2.11)
+    R (>= 3.0.2)
 Suggests: 
     testthat,
-    rpart,
-    mmpf,
-    margins
+    margins,
+    mmpf
 Imports:
+    mlr (>= 2.11),
     BBmisc (>= 1.11),
+    backports (>= 1.1.0),
     checkmate (>= 1.8.2),
-    numDeriv,
-    data.table
+    data.table (>= 1.10.4),
+    numDeriv
 License: BSD_3_clause + file LICENSE
 Encoding: UTF-8
 LazyData: true
