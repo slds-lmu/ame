@@ -4,3 +4,5 @@
 ^man-roxygen/
 
 .travis.yml
+codecov.yml
+test.R

@@ -11,7 +11,7 @@ computeAMEInternal.train = function(model, data, features,
   if (is.null(predict.fun)) {
     if (tt == "Classification") {
       if (is.null(cl))
-        cl = margex.mod.caret$finalModel$obsLevels[1]
+        cl = model$finalModel$obsLevels[1]
       predict.fun = function(object, newdata)
         predict(object, newdata = newdata, type = "prob")[[cl]]
     } else if (tt == "Regression") {
@@ -27,9 +27,9 @@ computeAMEInternal.WrappedModel = function(model, data, features,
   predict.fun = NULL, cl = NULL, ...){
   # FIXME: allow data to be also a mlr task
   # FIXME: support multiclass
-  tt = getTaskType(model)
+  tt = mlr::getTaskType(model)
   if (is.null(cl))
-    cl = getTaskDesc(model)$positive
+    cl = mlr::getTaskDesc(model)$positive
 
   if (is.null(predict.fun)) {
     if (tt == "classif") {

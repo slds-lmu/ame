@@ -1,5 +1,4 @@
 #' @import BBmisc
-#' @import mlr
 #' @import backports
 #' @import checkmate
 #' @import data.table

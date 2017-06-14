@@ -5,12 +5,13 @@ Authors@R: person("Giuseppe", "Casalicchio", email = "giuseppe.casalicchio@stat.
 Description: Compute average marginal effects for all models.
 Depends:
     R (>= 3.0.2)
-Suggests: 
+Suggests:
+    mlr (>= 2.11),
+    caret,
+    e1071,
     testthat,
     margins,
-    mmpf,
-    mlr (>= 2.11),
-    caret
+    mmpf
 Imports:
     BBmisc (>= 1.11),
     backports (>= 1.1.0),
