@@ -1,6 +1,6 @@
 # internal helper functions
 computeAMEInternal = function(model, data, features, predict.fun = NULL, ...){
-  UseMethod("computeAverageMarginalEffects")
+  UseMethod("computeAMEInternal")
 }
 
 computeAMEInternal.WrappedModel = function(model, data, features, predict.fun = NULL, ...){

@@ -6,8 +6,6 @@
 [![Build Status](https://travis-ci.org/giuseppec/ame.svg?branch=master)](https://travis-ci.org/giuseppec/ame)
 [![codecov](https://codecov.io/gh/giuseppec/ame/branch/master/graph/badge.svg)](https://codecov.io/gh/giuseppec/ame)
 
-OpenML aims to create a frictionless, collaborative environment for exploring machine learning. This R package allows to interface the [OpenML](http://www.openml.org/frontend/page/home) server to download datasets, tasks, runs and upload results (see  [Tutorial](http://openml.github.io/openml-r)).
-
 # Installation of the package
 
 Install the development version from GitHub (using `devtools`)
