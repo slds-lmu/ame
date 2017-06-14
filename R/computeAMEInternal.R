@@ -6,9 +6,10 @@ computeAMEInternal = function(model, data, features,
 
 computeAMEInternal.train = function(model, data, features,
   predict.fun = NULL, cl = NULL, ...){
+  tt = model$modelType
   # FIXME: support multiclass
   if (is.null(predict.fun)) {
-    if (model$modelType == "Classification") {
+    if (tt == "Classification") {
       if (is.null(cl))
         cl = margex.mod.caret$finalModel$obsLevels[1]
       predict.fun = function(object, newdata)
