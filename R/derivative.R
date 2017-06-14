@@ -42,13 +42,18 @@ derivative.factor = function(x, feature, data, model,
 
 derivative.logical = function(x, feature, data, model,
   predict.fun = function(object, newdata) predict(object, newdata = newdata), ...) {
-  x = as.factor(x)
-  derivative(x, feature, data, model, predict.fun, ...)
+  lvl = unique(x)
+  out = setNames(lapply(lvl, function(lev) {
+    predictModifiedData(x = lev, feature = feature, data = data,
+      model = model, predict.fun = predict.fun)
+  }), lvl)
+  return(out)
 }
 
 derivative.character = function(x, feature, data, model,
   predict.fun = function(object, newdata) predict(object, newdata = newdata), ...) {
   x = as.factor(x) #droplevels(factor(x, levels = levels(data[[feature]])))
+  data[[feature]] = as.factor(data[[feature]])
   derivative(x, feature, data, model, predict.fun, ...)
 }
 
