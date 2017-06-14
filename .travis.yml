@@ -4,7 +4,6 @@ r_check_args: "--as-cran --run-donttest"
 
 os:
   - linux
-  - osx
 
 r_packages:
   - covr
@@ -19,3 +18,10 @@ cache:
 
 after_success:
   - Rscript -e 'library(covr);codecov()'
+
+notifications:
+  email:
+    recipients:
+        - giuseppe.casalicchio@stat.uni-muenchen.de
+    on_success: change
+    on_failure: change
