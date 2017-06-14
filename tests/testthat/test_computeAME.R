@@ -15,7 +15,7 @@ test_that("check computeAME", {
 
   # compute ame with marings package
   mar = lapply(at.list, function(at) {
-    suppressWarnings(margins(margex.mod, data = margex, at = at))
+    suppressWarnings(margins::margins(margex.mod, data = margex, at = at))
   })
 
   # compute ame
