@@ -1,10 +1,10 @@
 context("check computeAME")
 
-test_that("check computeAME", {
-  checkEqualToMargins = function(x, y) {
-    expect_equal(sort(unname(summary(x)$AME)), sort(unname(summary(y)$AME)))
-  }
+checkEqualToMargins = function(x, y) {
+  expect_equal(sort(unname(summary(x)$AME)), sort(unname(summary(y)$AME)))
+}
 
+test_that("check computeAME for classification", {
   task = mlr::subsetTask(margex.task, features = c("age", "treatment"))
   lrn = mlr::makeLearner("classif.logreg", predict.type = "prob")
 

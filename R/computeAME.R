@@ -13,13 +13,14 @@
 #'   Further options passed down to the \code{\link[numDeriv]{grad}} function.
 #'
 #' @export
-computeAME = function(model, data, features, at = NULL, predict.fun = NULL, ...) {
+computeAME = function(model, data, features, at = NULL, predict.fun = NULL, cl = NULL, ...) {
   assertDataFrame(data)
   assertSubset(features, colnames(data))
   assertList(at, types = "vector", null.ok = TRUE)
+  assertFunction(predict.fun, args = c("object", "newdata"), null.ok = TRUE)
 
   if (is.null(at)) {
-    ame = computeAMEInternal(model, data, features, predict.fun, ...)
+    ame = computeAMEInternal(model, data, features, predict.fun, cl = cl, ...)
     ret = as.data.frame(as.list(unlist(ame)))
   } else {
     assertNames(names(at), subset.of = colnames(data))
