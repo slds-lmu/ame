@@ -4,7 +4,8 @@
 \alias{computeAME}
 \title{Compute Average Marginal Effects}
 \usage{
-computeAME(model, data, features, at = NULL, predict.fun = NULL, ...)
+computeAME(model, data, features, at = NULL, predict.fun = NULL,
+  cl = NULL, ...)
 }
 \arguments{
 \item{model}{[\code{\link[mlr]{WrappedModel}} | \code{any}]\cr

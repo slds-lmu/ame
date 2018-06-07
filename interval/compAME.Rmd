@@ -1,0 +1,234 @@
+---
+title: Test AME implementation
+author: 
+  - name: Bodo Burger
+date: 2018-06-06
+output:
+  html_document: 
+    toc: yes
+  github_document:
+    toc: yes
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = TRUE,
+                      #cache = TRUE, cache.path = "cache/compAME/",
+                      fig.path = "figures/compAME-")
+library("ame")
+library("ggplot2")
+library("mlr")
+theme_set(theme_light())
+```
+
+# Regression tasks (numeric target)
+
+## numeric features
+
+### (Roughly) Monotonic Relationship / Perceptible Trend
+
+One numeric feature x, relationship to target y is "overall" monotonic / upward trend; furthermore non-linear,
+non-convex and stochastic (i.e. we add noise).
+
+```{r monotonic-dgp}
+set.seed(123)
+n = 100
+target.fun = function(x) (sin(x) + 1) * x + .2 * cos(x + 1) + 2 * x
+x1 = runif(n, 0, 6)
+x2 = runif(n, 100, 1000) # this feature has no influence on y
+eps = rnorm(n, 0, 1)
+y.true = target.fun(x1)
+y = y.true + eps
+df = data.frame(x1, x2, y)
+
+lm.mod = lm(y ~ ., data = df)
+poly12.mod = lm(y ~ poly(x1, 12, raw = TRUE) + x2, data = df)
+grid.x = data.frame(x1 = seq(0, 6, .01), x2 = mean(x2))
+df.plot = data.frame(x1 = grid.x$x1, true = target.fun(grid.x$x1),
+  fitlm = predict(lm.mod, newdata = grid.x),
+  fitpoly12 = predict(object = poly12.mod, newdata = grid.x))
+df.plot = reshape2::melt(df.plot, id.vars = "x1", variable.name = "type", value.name = "y")
+ggplot(data = df.plot, mapping = aes(x = x1, y = y, col = type, group = type)) + geom_line() +
+  geom_point(data = df, mapping = aes(x = x1, y = y), alpha = .3, inherit.aes = FALSE) +
+  ggtitle("True relationship vs observed data vs predicted values")
+```
+
+```{r}
+lm.mod
+#as.numeric(predict(lm.mod, newdata = df))
+compAME(lm.mod, df, features = c("x1", "x2"))
+compAME(poly12.mod, df, c("x1", "x2"), parallel = TRUE)
+computeAME(lm.mod, data = df, c("x1", "x2"))
+
+regr.tsk = makeRegrTask(data = df, target = "y")
+lm.lrn = makeLearner("regr.lm")
+lm.mod.mlr = train(lm.lrn, regr.tsk)
+lm.mod.mlr$learner.model
+
+compAME(lm.mod.mlr, regr.tsk, c("x1", "x2"))
+```
+
+The AME for the poly12 model is higher than for the lm model. Maybe the AME of poly12 is a more plausible value for the feature effect of x1 given the data?
+
+```{r}
+lm.coef = coef(lm.mod)
+poly12.ame = compAME(poly12.mod, df, feature = "x1")
+poly12.intercept = mean(df$y) - poly12.ame * mean(df$x1)
+ggplot() + 
+  geom_point(data = df, mapping = aes(x = x1, y = y, col = "data"), alpha = .3) +
+  geom_abline(mapping = aes(slope = lm.coef[2], intercept = lm.coef[1], color = "lm")) +
+  geom_abline(mapping = aes(slope = poly12.ame, intercept = poly12.intercept, color = "poly12")) +
+  ggtitle("AME of lm and poly12")
+```
+
+
+### Non-monotonic Relationship / No Trend
+
+```{r no-trend-dgp}
+set.seed(1215)
+n = 100
+target.fun = function(x) 5 * sin(2 * x) + 2 * cos(x + 1)
+x1 = runif(n, 0, 6)
+x2 = runif(n, 100, 1000) # this feature has no influence on y
+eps = rnorm(n, 0, 1)
+y.true = target.fun(x1)
+y = y.true + eps
+df = data.frame(x1, x2, y)
+
+lm.mod = lm(y ~ ., data = df)
+poly12.mod = lm(y ~ poly(x1, 12, raw = TRUE) + x2, data = df)
+grid.x = data.frame(x1 = seq(0, 6, .01), x2 = mean(x2))
+df.plot = data.frame(x1 = grid.x$x1, true = target.fun(grid.x$x1),
+  fitlm = predict(lm.mod, newdata = grid.x),
+  fitpoly12 = predict(object = poly12.mod, newdata = grid.x))
+df.plot = reshape2::melt(df.plot, id.vars = "x1", variable.name = "type", value.name = "y")
+ggplot(data = df.plot, mapping = aes(x = x1, y = y, col = type, group = type)) + geom_line() +
+  geom_point(data = df, mapping = aes(x = x1, y = y), alpha = .3, inherit.aes = FALSE) +
+  ggtitle("True relationship vs observed data vs predicted values")
+```
+
+```{r}
+lm.mod
+compAME(lm.mod, df, c("x1", "x2"))
+compAME(poly12.mod, df, c("x1", "x2"))
+
+regr.tsk = makeRegrTask(data = df, target = "y")
+lm.lrn = makeLearner("regr.lm")
+lm.mod.mlr = train(lm.lrn, regr.tsk)
+lm.mod.mlr$learner.model
+```
+
+## many numeric features
+
+Now let's look at a task with many numeric features.
+
+```{r}
+
+```
+
+## "real" data
+
+```{r}
+df = getTaskData(fuelsubset.task)[ , 1:20]
+knitr::kable(df[1:5, 1:6], digits = 4)
+lm.mod = lm(heatan ~ ., data = df)
+lm.coefs = coef(lm.mod)[-1]
+lm.ame = compAME(lm.mod, df, features = names(df)[-1])
+all.equal(lm.ame, lm.coefs)
+
+fuel.tsk = makeRegrTask(data = df, target = "heatan")
+lm.lrn = makeLearner("regr.lm")
+lm.mod.mlr = train(lm.lrn, fuel.tsk)
+summary(lm.mod.mlr$learner.model)
+rf.lrn = makeLearner("regr.randomForest")
+rf.mod.mlr = train(rf.lrn, fuel.tsk)
+system.time(compAME(lm.mod.mlr, fuel.tsk, names(df)[-1], parallel = FALSE))
+system.time(compAME(lm.mod.mlr, fuel.tsk, names(df)[-1], parallel = TRUE))
+system.time(compAME(rf.mod.mlr, fuel.tsk, names(df)[-1], parallel = FALSE))
+system.time(compAME(rf.mod.mlr, fuel.tsk, names(df)[-1], parallel = TRUE))
+lm.ame.mlr = compAME(lm.mod.mlr, fuel.tsk, names(df)[-1])
+all.equal(lm.ame, lm.ame.mlr)
+lm.ame.mlr
+compAME(rf.mod.mlr, fuel.tsk, names(df)[-1], parallel = TRUE)
+```
+
+## numeric and binary features
+
+```{r dgp-numeric-and-binary}
+n = 10000
+bin1 = rbinom(n, 1, prob = .75)
+bin2 = rbinom(n, 1, prob = .35) + 1
+x1 = runif(n, 0, 1)
+x2 = runif(n, 0, 1)
+x3 = rnorm(n, -1, 1)
+x4 = runif(n, -.5, .5)
+eps = rnorm(n, 0, 2)
+y = .4 + 2.3 * bin1 + 2.2 * x1 + bin2 * x2 + 3 * x2 + 1.7 * x3^2 + x4 + eps
+df = data.frame(y, x1, x2, x3, x4, bin1 = factor(bin1), bin2 = factor(bin2))
+knitr::kable(head(df))
+```
+
+### Linear model
+
+```{r}
+lm.fit = lm(y ~ x1 + x2 + x3 + I(x3^2) + x4, data = df)
+lm.fit = lm(y ~ ., data = df)
+summary(lm.fit)
+computeAME(lm.fit, df, names(df)[-1])
+compAME(lm.fit, df, names(df)[-1])
+system.time(computeAME(lm.fit, df, names(df)[-1]))
+system.time(compAME(lm.fit, df, names(df)[-1], parallel = TRUE))
+
+regr.tsk = makeRegrTask(data = df, target = "y")
+lm.lrn = makeLearner("regr.lm")
+lm.mod.mlr = train(lm.lrn, regr.tsk)
+lm.mod.mlr$learner.model
+compAME(lm.mod.mlr, regr.tsk, names(df)[-1], parallel = TRUE)
+system.time(compAME(lm.mod.mlr, regr.tsk, names(df)[-1], parallel = TRUE))
+computeAME(lm.mod.mlr, df, names(df[-1]))
+```
+
+Performance of the linear model:
+
+```{r}
+lm.pred = predict(lm.mod.mlr, regr.tsk)
+performance(lm.pred, list(mse, rsq, expvar))
+```
+
+
+### Random forest
+
+```{r}
+rf.lrn = makeLearner("regr.randomForest")
+rf.mod.mlr = train(rf.lrn, regr.tsk)
+rf.pred = predict(rf.mod.mlr, regr.tsk)
+performance(rf.pred, list(mse, rsq, expvar))
+compAME(rf.mod.mlr, regr.tsk, "x1")
+computeAME(rf.mod.mlr, df, "x1")
+compAME(rf.mod.mlr, regr.tsk, "bin1")
+# computeAME(rf.mod.mlr, df, "bin1") #TODO: error
+#   Type of predictors in new data do not match that of the training data.
+```
+
+Results of `compAME()` and `computeAME()` are the same for `numDeriv::grad(..., method = "simple"). Default method is Richardson extrapolation.
+
+### Boosting
+
+```{r}
+gbm.lrn = makeLearner("regr.gbm", n.trees = 1000, interaction.depth = 20)
+gbm.mod.mlr = train(gbm.lrn, regr.tsk)
+gbm.pred = predict(gbm.mod.mlr, regr.tsk)
+performance(gbm.pred, list(mse, rsq, expvar))
+compAME(gbm.mod.mlr, regr.tsk, "x1")
+computeAME(gbm.mod.mlr, df, "x1")
+compAME(gbm.mod.mlr, regr.tsk, "bin1")
+computeAME(gbm.mod.mlr, df, "bin1")
+```
+
+# Classification tasks
+
+```{r}
+
+```
+
+
