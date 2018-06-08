@@ -4,8 +4,8 @@
 \alias{compAME.WrappedModel}
 \title{WrappedModel class from mlr package}
 \usage{
-\method{compAME}{WrappedModel}(object, task, features, predict.fun = NULL,
-  delta = NULL, parallel = FALSE, ...)
+\method{compAME}{WrappedModel}(object, task, features, delta = NULL,
+  parallel = FALSE, ...)
 }
 \description{
 WrappedModel class from mlr package

@@ -1,12 +1,33 @@
 #' Compute marginal average effects
 #'
-#' @param object Model object
-#' @param x Feature
-#' @param delta Delta for computing AME
+#' @param object Output object of training a model or WrappedModel (mlr package)
+#' @param data data.frame
+#' @param features character Name(s) of the feature(s) AME should be computed for.
+#' @param predict.fun Custom prediction function
+#' @param delta numeric Delta for computing AME of numeric features. Default is .0001.
+#' @param parallel logical (default is FALSE) If true, computation of several features is done with
+#'   mclapply(). Does not work on Windows systems.
+#'
+#' @section Custom prediction function:
+#'
+#' If you are using mlr you do not have to provide a prediciton function.
+#'
+#' If you are using a model from an arbitrary R package, you have to make sure that the predict method
+#' is in the form \code{predict(object, newdata = newdata)} and returns a numeric value. Furthermore:
+#'
+#' Regression tasks: provide predict.fun if the model needs specific arguments,
+#'   e.g. gbm needs the argument \code{n.trees}.
+#'
+#' Classification tasks: you have to make sure that the prediction function of the model returns
+#'   probabilities, e.g.:
+#' \itemize{
+#'   \item glm: predict.fun = function(object, newdata) predict(object, newdata = newdata, type = "response")
+#'   \item gbm: predict.fun = function(object, newdata) predict(object, newdata = newdata, n.trees = 1000, type = "response")
+#' }
 #'
 #' @return AME
 #'
-#' @examples 4
+#' @examples 4 + 4
 #'
 #' @export
 compAME = function(object, ...) {
@@ -30,7 +51,7 @@ compAME.default = function(object, data, features, predict.fun = NULL, delta = N
       prediction2 = predict.fun(object, data.delta)
       ame = mean((prediction2 - prediction1) / delta)
     } else if(is.factor(x)) {
-      # only supports binary 0/1 coding
+      # only supports binary
       lvls = levels(x)
       data[, feature] = factor(lvls[1], levels = lvls)
       data.delta[, feature] = factor(lvls[2], levels = lvls)
@@ -47,7 +68,8 @@ compAME.default = function(object, data, features, predict.fun = NULL, delta = N
 
   if (parallel) {
     mc.cores = parallel::detectCores()
-    ame = parallel::mclapply(features, function(x) compute1Feature(feature = x, delta = delta), mc.cores = mc.cores)
+    ame = parallel::mclapply(features, function(x) compute1Feature(feature = x, delta = delta),
+      mc.cores = mc.cores)
   } else {
     ame = lapply(features, function(x) compute1Feature(feature = x, delta = delta))
   }
@@ -58,13 +80,20 @@ compAME.default = function(object, data, features, predict.fun = NULL, delta = N
 #' WrappedModel class from mlr package
 #'
 #' @export
-compAME.WrappedModel = function(object, task, features, predict.fun = NULL, delta = NULL, parallel = FALSE,...) {
+compAME.WrappedModel = function(object, task, features, delta = NULL, parallel = FALSE,...) {
   assertClass(task, classes = "Task")
   data = mlr::getTaskData(task)
+  task.type = mlr::getTaskType(task)
+  if (task.type == "regr") {
+    predict.fun = function(object, newdata) {
+      mlr::getPredictionResponse(predict(object, newdata = newdata))
+    }
+  } else if (task.type == "classif") {
+    predict.fun = function(object, newdata) {
+      mlr::getPredictionProbabilities(predict(object, newdata = newdata))
+    }
+  } else stop("Task type of ", deparse(substitute(task)), " is not supported.")
 
-  if(is.null(predict.fun)) predict.fun = function(object, newdata) {
-    mlr::getPredictionResponse(predict(object, newdata = newdata))
-  }
-
-  compAME.default(object = object, data = data, features = features, predict.fun = predict.fun, delta = delta, parallel = parallel)
+  compAME.default(object = object, data = data, features = features, predict.fun = predict.fun,
+    delta = delta, parallel = parallel)
 }

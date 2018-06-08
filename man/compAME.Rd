@@ -7,11 +7,18 @@
 compAME(object, ...)
 }
 \arguments{
-\item{object}{Model object}
+\item{object}{Output object of training a model or WrappedModel (mlr package)}
 
-\item{x}{Feature}
+\item{data}{data.frame}
 
-\item{delta}{Delta for computing AME}
+\item{features}{character Name(s) of the feature(s) AME should be computed for.}
+
+\item{predict.fun}{Custom prediction function}
+
+\item{delta}{numeric Delta for computing AME of numeric features. Default is .0001.}
+
+\item{parallel}{logical (default is FALSE) If true, computation of several features is done with
+mclapply(). Does not work on Windows systems.}
 }
 \value{
 AME
@@ -19,7 +26,26 @@ AME
 \description{
 Compute marginal average effects
 }
+\section{Custom prediction function}{
+
+
+If you are using mlr you do not have to provide a prediciton function.
+
+If you are using a model from an arbitrary R package, you have to make sure that the predict method
+is in the form \code{predict(object, newdata = newdata)} and returns a numeric value. Furthermore:
+
+Regression tasks: provide predict.fun if the model needs specific arguments,
+  e.g. gbm needs the argument \code{n.trees}.
+
+Classification tasks: you have to make sure that the prediction function of the model returns
+  probabilities, e.g.:
+\itemize{
+  \item glm: predict.fun = function(object, newdata) predict(object, newdata = newdata, type = "response")
+  \item gbm: predict.fun = function(object, newdata) predict(object, newdata = newdata, n.trees = 1000, type = "response")
+}
+}
+
 \examples{
-4
+4 + 4
 
 }

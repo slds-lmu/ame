@@ -227,7 +227,98 @@ computeAME(gbm.mod.mlr, df, "bin1")
 
 # Classification tasks
 
+## Binary classification
+
+### Logistic model
+
 ```{r}
+spam.data = getTaskData(spam.task)
+knitr::kable(spam.data[1:5, 52:58])
+
+log.mod = glm(type ~ ., data = spam.data, family = binomial())
+summary(log.mod)
+
+log.lrn = makeLearner("classif.logreg", predict.type = "prob")
+log.mod.mlr = train(log.lrn, spam.task)
+summary(log.mod.mlr$learner.model)
+log.pred = predict(log.mod.mlr, task = spam.task)
+performance(log.pred, list(mmce))
+
+1 - predict(log.mod, type = "response")[1:7]
+getPredictionProbabilities(log.pred)[1:7]
+all.equal(1 - unname(predict(log.mod, type = "response")), getPredictionProbabilities(log.pred))
+
+features = c("remove", "edu", "charExclamation")
+compAME(log.mod.mlr, spam.task, features)
+compAME(log.mod, spam.data, features, predict.fun = function(object, newdata) predict(object, newdata = newdata, type = "response"))
+compAME(log.mod, spam.data, features)
+computeAME(log.mod.mlr, spam.data, features)
+computeAME(log.mod, spam.data, features)
+```
+
+Change positive class (`positive = "spam"`):
+
+```{r}
+spam.task.sp = makeClassifTask(data = spam.data, target = "type", positive = "spam")
+log.mod.mlr.sp = train(log.lrn, spam.task.sp)
+all.equal(log.mod.mlr$learner.model$coefficients, log.mod.mlr.sp$learner.model$coefficients)
+log.pred.sp = predict(log.mod.mlr.sp, task = spam.task)
+predict(log.mod, type = "response")[1:7] # positive class is class with higher level
+getPredictionProbabilities(log.pred.sp)[1:7] # depends on positive class argument
+```
+
+
+```{r pdp-binary-classif}
+log.pdp = generatePartialDependenceData(log.mod.mlr, spam.task, features)
+plotPartialDependence(log.pdp) + ggtitle("Partial dependence for logistic regression (spam task)")
+```
+
+### Random Forest
+
+```{r}
+rf.lrn = makeLearner("classif.randomForest", predict.type = "prob")
+rf.mod.mlr = train(rf.lrn, spam.task)
+rf.pred = predict(rf.mod.mlr, spam.task)
+performance(rf.pred, list(mse, rsq, expvar))
+compAME(rf.mod.mlr, regr.tsk, "x1")
+computeAME(rf.mod.mlr, df, "x1")
+compAME(rf.mod.mlr, regr.tsk, "bin1")
+# computeAME(rf.mod.mlr, df, "bin1") #TODO: error
+#   Type of predictors in new data do not match that of the training data.
+```
+
+### Boosting
+
+```{r}
+gbm.lrn = makeLearner("classif.gbm", predict.type = "prob", n.trees = 1000, interaction.depth = 20)
+gbm.mod.mlr = train(gbm.lrn, spam.task)
+gbm.pred = predict(gbm.mod.mlr, spam.task)
+performance(gbm.pred, list(mmce))
+compAME(gbm.mod.mlr, spam.task, features)
+computeAME(gbm.mod.mlr, spam.data, features)
+compAME(gbm.mod.mlr$learner.model, spam.data, features, predict.fun = function(object, newdata) predict(object, newdata = newdata, n.trees = 1000, type = "response"))
+```
+
+"Benchmark":
+```{r}
+system.time(compAME(gbm.mod.mlr, spam.task, features))
+system.time(computeAME(gbm.mod.mlr, spam.data, features))
+system.time(compAME(gbm.mod.mlr$learner.model, spam.data, features, predict.fun = function(object, newdata) predict(object, newdata = newdata, n.trees = 1000, type = "response")))
+```
+
+
+```{r pdp-binary-classif}
+gbm.pdp = generatePartialDependenceData(gbm.mod.mlr, spam.task, features)
+plotPartialDependence(gbm.pdp) + ggtitle("Partial dependence for gbm (spam task)")
+```
+
+
+## Multiclass
+
+```{r}
+str(iris)
+knitr::kable(head(iris))
+
 
 ```
 
