@@ -8,6 +8,11 @@
 #' @param parallel logical (default is FALSE) If true, computation of several features is done with
 #'   mclapply(). Does not work on Windows systems.
 #'
+#' @section Categorical features:
+#'
+#' Supported classes are \code{factor}, \code{logical}, \code{character}. First level is chosen as reference category.
+#'
+#'
 #' @section Custom prediction function:
 #'
 #' If you are using mlr you do not have to provide a prediciton function.
@@ -41,39 +46,23 @@ compAME.default = function(object, data, features, predict.fun = NULL, delta = N
   assertFunction(predict.fun, args = c("object", "newdata"), null.ok = TRUE)
   assertNumeric(delta, null.ok = TRUE)
   assertLogical(parallel)
-
-  compute1Feature = function(feature, delta) {
-    x = data[[feature]]
-    data.delta = data
-    if(is.numeric(x)) {
-      data.delta[, feature] = data.delta[, feature] + delta
-      prediction1 = predict.fun(object, data)
-      prediction2 = predict.fun(object, data.delta)
-      ame = mean((prediction2 - prediction1) / delta)
-    } else if(is.factor(x)) {
-      # only supports binary
-      lvls = levels(x)
-      data[, feature] = factor(lvls[1], levels = lvls)
-      data.delta[, feature] = factor(lvls[2], levels = lvls)
-      prediction1 = predict.fun(object, data)
-      prediction2 = predict.fun(object, data.delta)
-      ame = mean(prediction2 - prediction1) # support alternative aggr functions
-    } else stop("Data type of ", feature, " is unsupported.")
-    return(ame)
-  }
-
   if (is.null(delta)) delta = .0001 # default value by which a feature value is shifted
   #else if (delta == "trivedi") delta = sd(data[,features[1]]) / 1000 # suggested by Cameron/Trivedi 2009
+  #else assertNumeric(delta)
   if(is.null(predict.fun)) predict.fun = function(object, data) predict(object, newdata = data)
 
   if (parallel) {
     mc.cores = parallel::detectCores()
-    ame = parallel::mclapply(features, function(x) compute1Feature(feature = x, delta = delta),
-      mc.cores = mc.cores)
+    ame = parallel::mclapply(features, function(feature) {
+      x = data[[feature]]
+      compAMEFeature(x, object, feature, data, predict.fun, delta)
+    }, mc.cores = mc.cores)
   } else {
-    ame = lapply(features, function(x) compute1Feature(feature = x, delta = delta))
+    ame = lapply(features, function(feature) {
+      x = data[[feature]]
+      compAMEFeature(x, object, feature, data, predict.fun, delta)
+    })
   }
-  names(ame) = features
   return(unlist(ame))
 }
 

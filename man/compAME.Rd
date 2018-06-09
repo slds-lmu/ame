@@ -26,6 +26,12 @@ AME
 \description{
 Compute marginal average effects
 }
+\section{Categorical features}{
+
+
+Supported classes are \code{factor}, \code{logical}, \code{character}. First level is chosen as reference category.
+}
+
 \section{Custom prediction function}{
 
 
