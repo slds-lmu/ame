@@ -55,10 +55,12 @@ ggplot(data = df.plot, mapping = aes(x = x1, y = y, col = type, group = type)) +
 
 ```{r}
 lm.mod
-#as.numeric(predict(lm.mod, newdata = df))
-compAME(lm.mod, df, features = c("x1", "x2"))
-compAME(poly12.mod, df, c("x1", "x2"), parallel = TRUE)
+lm.ame = compAME(lm.mod, df, features = c("x1", "x2"))
+poly12.ame = compAME(poly12.mod, df, c("x1", "x2"), parallel = TRUE)
+lm.ame
+poly12.ame
 computeAME(lm.mod, data = df, c("x1", "x2"))
+computeAME(poly12.mod, df, c("x1", "x2"))
 
 regr.tsk = makeRegrTask(data = df, target = "y")
 lm.lrn = makeLearner("regr.lm")
@@ -66,6 +68,10 @@ lm.mod.mlr = train(lm.lrn, regr.tsk)
 lm.mod.mlr$learner.model
 
 compAME(lm.mod.mlr, regr.tsk, c("x1", "x2"))
+
+p1 = plotAME(lm.mod, df, lm.ame, "y") + ggtitle("linear model")
+p2 = plotAME(poly12.mod, df, poly12.ame, "y") + ggtitle("poly12 model")
+gridExtra::grid.arrange(p1, p2, nrow = 2)
 ```
 
 The AME for the poly12 model is higher than for the lm model. Maybe the AME of poly12 is a more plausible value for the feature effect of x1 given the data?
@@ -73,11 +79,8 @@ The AME for the poly12 model is higher than for the lm model. Maybe the AME of p
 ```{r}
 lm.coef = coef(lm.mod)
 poly12.ame = compAME(poly12.mod, df, feature = "x1")
-poly12.intercept = mean(df$y) - poly12.ame * mean(df$x1)
-ggplot() + 
-  geom_point(data = df, mapping = aes(x = x1, y = y, col = "data"), alpha = .3) +
-  geom_abline(mapping = aes(slope = lm.coef[2], intercept = lm.coef[1], color = "lm")) +
-  geom_abline(mapping = aes(slope = poly12.ame, intercept = poly12.intercept, color = "poly12")) +
+plotAME(poly12.ame, df, poly12.ame, "y") +
+  geom_abline(mapping = aes(slope = lm.coef[2], intercept = lm.coef[1]), color = "green") +
   ggtitle("AME of lm and poly12")
 ```
 
@@ -109,13 +112,19 @@ ggplot(data = df.plot, mapping = aes(x = x1, y = y, col = type, group = type)) +
 
 ```{r}
 lm.mod
-compAME(lm.mod, df, c("x1", "x2"))
-compAME(poly12.mod, df, c("x1", "x2"))
+lm.ame = compAME(lm.mod, df, c("x1", "x2"))
+poly12.ame = compAME(poly12.mod, df, c("x1", "x2"))
+lm.ame
+poly12.ame
 
 regr.tsk = makeRegrTask(data = df, target = "y")
 lm.lrn = makeLearner("regr.lm")
 lm.mod.mlr = train(lm.lrn, regr.tsk)
 lm.mod.mlr$learner.model
+
+p1 = plotAME(lm.mod, df, lm.ame, "y") + ggtitle("linear model")
+p2 = plotAME(poly12.mod, df, poly12.ame, "y") + ggtitle("poly12 model")
+gridExtra::grid.arrange(p1, p2, nrow = 2)
 ```
 
 ## many numeric features
@@ -171,7 +180,7 @@ x4 = runif(n, -.5, .5)
 eps = rnorm(n, 0, 2)
 # data generating process:
 y = .4 + 2.3 * bin1 + 2.2 * x1 + bin2 * x2 + 3 * x2 + 1.7 * x3^2 + x4 +
-  .1 * cat1.map[cat1] + .1 * ord1.map[ord1] + logic1 * 1.3 + 
+  .1 * cat1.map[cat1] + .1 * ord1.map[ord1] + logic1 * 1.3 +
   ifelse(char1 == "A", 0, ifelse(char1 == "E", -1, 1)) + eps
 df = data.frame(y, x1, x2, x3, x4, bin1 = factor(bin1), bin2 = factor(bin2), cat1, ord1, logic1, char1)
 knitr::kable(head(df))
@@ -188,6 +197,15 @@ compAME(lm.mod, df, names(df)[-1])
 system.time(computeAME(lm.mod, df, names(df)[-1]))
 system.time(compAME(lm.mod, df, names(df)[-1]))
 system.time(compAME(lm.mod, df, names(df)[-1], parallel = TRUE))
+```
+
+```{r}
+# data generating process without logic:
+y = .4 + 2.3 * bin1 + 2.2 * x1 + bin2 * x2 + 3 * x2 + 1.7 * x3^2 + x4 +
+  .1 * cat1.map[cat1] + .1 * ord1.map[ord1] +
+  ifelse(char1 == "A", 0, ifelse(char1 == "E", -1, 1)) + eps
+df = data.frame(y, x1, x2, x3, x4, bin1 = factor(bin1), bin2 = factor(bin2), cat1, ord1, char1)
+knitr::kable(head(df))
 
 regr.tsk = makeRegrTask(data = df, target = "y")
 lm.lrn = makeLearner("regr.lm")
@@ -197,6 +215,8 @@ compAME(lm.mod.mlr, regr.tsk, names(df)[-1], parallel = TRUE)
 system.time(compAME(lm.mod.mlr, regr.tsk, names(df)[-1], parallel = TRUE))
 computeAME(lm.mod.mlr, df, names(df[-1]))
 ```
+
+
 
 Performance of the linear model:
 
@@ -213,9 +233,8 @@ rf.lrn = makeLearner("regr.randomForest")
 rf.mod.mlr = train(rf.lrn, regr.tsk)
 rf.pred = predict(rf.mod.mlr, regr.tsk)
 performance(rf.pred, list(mse, rsq, expvar))
-compAME(rf.mod.mlr, regr.tsk, "x1")
-computeAME(rf.mod.mlr, df, "x1")
-compAME(rf.mod.mlr, regr.tsk, "bin1")
+compAME(rf.mod.mlr, regr.tsk, names(df)[-1])
+# computeAME(rf.mod.mlr, df, "x1")
 # computeAME(rf.mod.mlr, df, "bin1") #TODO: error
 #   Type of predictors in new data do not match that of the training data.
 ```
@@ -229,8 +248,8 @@ gbm.lrn = makeLearner("regr.gbm", n.trees = 1000, interaction.depth = 20)
 gbm.mod.mlr = train(gbm.lrn, regr.tsk)
 gbm.pred = predict(gbm.mod.mlr, regr.tsk)
 performance(gbm.pred, list(mse, rsq, expvar))
-compAME(gbm.mod.mlr, regr.tsk, "x1")
-computeAME(gbm.mod.mlr, df, "x1")
+compAME(gbm.mod.mlr, regr.tsk, names(df)[-1])
+computeAME(gbm.mod.mlr, df, names(df)[-1])
 compAME(gbm.mod.mlr, regr.tsk, "bin1")
 computeAME(gbm.mod.mlr, df, "bin1")
 ```
@@ -263,7 +282,7 @@ compAME(log.mod.mlr, spam.task, features)
 compAME(log.mod, spam.data, features, predict.fun = function(object, newdata) predict(object, newdata = newdata, type = "response"))
 compAME(log.mod, spam.data, features)
 computeAME(log.mod.mlr, spam.data, features)
-computeAME(log.mod, spam.data, features)
+computeAME(log.mod, spam.data, features, predict.fun = function(object, newdata) predict(object, newdata = newdata, type = "response"))
 ```
 
 Change positive class (`positive = "spam"`):
@@ -289,7 +308,7 @@ plotPartialDependence(log.pdp) + ggtitle("Partial dependence for logistic regres
 rf.lrn = makeLearner("classif.randomForest", predict.type = "prob")
 rf.mod.mlr = train(rf.lrn, spam.task)
 rf.pred = predict(rf.mod.mlr, spam.task)
-performance(rf.pred, list(mse, rsq, expvar))
+performance(rf.pred, list(mmce))
 compAME(rf.mod.mlr, regr.tsk, "x1")
 computeAME(rf.mod.mlr, df, "x1")
 compAME(rf.mod.mlr, regr.tsk, "bin1")

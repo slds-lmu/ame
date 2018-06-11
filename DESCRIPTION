@@ -17,7 +17,9 @@ Imports:
     backports (>= 1.1.0),
     checkmate (>= 1.8.2),
     data.table (>= 1.10.4),
-    numDeriv
+    ggplot2 (>= 2.2.1),
+    numDeriv,
+    reshape2 (>= 1.4.3)
 License: BSD_3_clause + file LICENSE
 Encoding: UTF-8
 LazyData: true
