@@ -84,6 +84,39 @@ plotAME(poly12.ame, df, poly12.ame, "y") +
   ggtitle("AME of lm and poly12")
 ```
 
+### "Individual marginal effect" (no aggregation)
+
+```{r}
+lm.ime = compAME(lm.mod, df, features = c("x1", "x2"), individual = TRUE)
+poly12.ime = compAME(poly12.mod, df, features = c("x1", "x2"), individual = TRUE)
+table(lm.ime[[2]])
+table(round(poly12.ime[[1]], digits = 3))
+table(round(poly12.ime[[2]], digits = 3))
+
+poly12.y.hat = predict(poly12.mod, newdata = df)
+
+p1 = ggplot() +
+  geom_line(aes(x = df$x1, y = poly12.ime$x1)) +
+  xlab("x1") + ylab("AME") + ggtitle("AME")
+p2 = ggplot() + 
+  geom_line(aes(x = df$x1, y = poly12.y.hat)) +
+  xlab("x1") + ylab("y.hat") + ggtitle("Predicted values")
+gridExtra::grid.arrange(p1, p2, nrow = 2)
+
+split.points = partitionDerivative(df$x1, poly12.ime$x1, 1)
+split.points = partitionDerivative(df$x1[-74], poly12.ime$x1[-74], 1) # ohne Ausreißer
+split.points = partitionDerivative(df$x1[-74], poly12.ime$x1[-74], 5) # ohne Ausreißer
+
+ggplot(df, aes(x = x1, y = y)) + geom_point() +
+  geom_point(mapping = aes(x = df$x1, y = poly12.ime$x1, col = "AME")) +
+  geom_point(aes(x = df$x1, y = poly12.y.hat, col = "y.hat")) +
+  geom_vline(xintercept = split.points)
+  xlab("x1") + ylab("y.hat")
+
+
+```
+
+
 
 ### Non-monotonic Relationship / No Trend
 

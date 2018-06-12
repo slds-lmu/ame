@@ -40,7 +40,8 @@ compAME = function(object, ...) {
 }
 
 #' @export
-compAME.default = function(object, data, features, predict.fun = NULL, delta = NULL, parallel = FALSE, ...) {
+compAME.default = function(object, data, features, predict.fun = NULL, individual = FALSE,
+    delta = NULL, parallel = FALSE, ...) {
   assertDataFrame(data)
   assertSubset(features, colnames(data))
   assertFunction(predict.fun, args = c("object", "newdata"), null.ok = TRUE)
@@ -51,19 +52,23 @@ compAME.default = function(object, data, features, predict.fun = NULL, delta = N
   #else assertNumeric(delta)
   if(is.null(predict.fun)) predict.fun = function(object, data) predict(object, newdata = data)
 
+  if (individual) aggr.fun = function(x) x
+  else aggr.fun = mean
+
   if (parallel) {
     mc.cores = parallel::detectCores()
     ame = parallel::mclapply(features, function(feature) {
       x = data[[feature]]
-      compAMEFeature(x, object, feature, data, predict.fun, delta)
+      compAMEFeature(x, object, feature, data, predict.fun, aggr.fun, delta)
     }, mc.cores = mc.cores)
   } else {
     ame = lapply(features, function(feature) {
       x = data[[feature]]
-      compAMEFeature(x, object, feature, data, predict.fun, delta)
+      compAMEFeature(x, object, feature, data, predict.fun, aggr.fun, delta)
     })
   }
-  return(unlist(ame))
+  names(ame) = features
+  return(ame)
 }
 
 #' WrappedModel class from mlr package

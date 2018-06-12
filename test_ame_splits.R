@@ -18,12 +18,18 @@ splitPD = function(x, y, max.splits) {
 data$distance = log(data$distance)
 f = outcome ~ distance + ycn + I(distance^2) + age + I(age^2)
 mod = glm(f, data = data, family = binomial)
+coef(mod)
 
 # ame of distance
-computeAME(mod, data, "distance")
+computeAME(mod, data, "distance") # why does this not work?
+computeAME(mod, data, "distance", predict.fun = function(object, newdata) predict(object, newdata = newdata, type = "response"))
+computeAME(mod, data, "ycn")
+compAME(mod, data, c("distance", "ycn", "age"), predict.fun = function(object, newdata) predict(object, newdata = newdata, type = "response"))
 
 # compute the derivative of distance
 yderiv = derivative(data$distance, "distance", data, mod)
+yderiv2 = compAME(mod, data, "distance", individual = TRUE)$distance
+all.equal(yderiv, yderiv2)
 mean(yderiv) # average of this is the ame
 
 # for each value of distance predict the average y-value
