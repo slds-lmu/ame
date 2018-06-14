@@ -103,9 +103,9 @@ p2 = ggplot() +
   xlab("x1") + ylab("y.hat") + ggtitle("Predicted values")
 gridExtra::grid.arrange(p1, p2, nrow = 2)
 
-split.points = partitionDerivative(df$x1, poly12.ime$x1, 1)
-split.points = partitionDerivative(df$x1[-74], poly12.ime$x1[-74], 1) # ohne Ausreißer
-split.points = partitionDerivative(df$x1[-74], poly12.ime$x1[-74], 5) # ohne Ausreißer
+split.points = partition(df$x1, poly12.ime$x1, 2)
+split.points = partition(df$x1[-74], poly12.ime$x1[-74], 2) # ohne Ausreißer
+split.points = partition(df$x1[-74], poly12.ime$x1[-74], 7) # ohne Ausreißer
 
 ggplot(df, aes(x = x1, y = y)) + geom_point() +
   geom_point(mapping = aes(x = df$x1, y = poly12.ime$x1, col = "AME")) +

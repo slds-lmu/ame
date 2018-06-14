@@ -1,0 +1,65 @@
+---
+title: partition
+author: 
+  - name: Bodo Burger
+date: 2018-06-14
+output:
+  html_document: 
+    toc: yes
+  github_document:
+    toc: yes
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = TRUE,
+                      #cache = TRUE, cache.path = "cache/",
+                      fig.path = "figures/partition-")
+library("ggplot2")
+library("ame")
+theme_set(theme_light())
+set.seed(4218)
+```
+
+## Toy example
+
+```{r small-dataset}
+set.seed(0815)
+n = 6
+x = sample(n) + 1.5
+y = runif(n, 0, 10)
+df = data.frame(x, y)
+ggplot(data=df, mapping=aes(x = x, y = y)) + geom_point()
+```
+
+```{r small-partition}
+ggplot() + geom_point(data=df, mapping=aes(x = x, y = y)) +
+  geom_vline(mapping = aes(xintercept = partition(df$x, df$y, 4) - .03, color = "rpart")) +
+  geom_vline(mapping = aes(xintercept = partition(df$x, df$y, 4, method = "cluster") + .03, color = "cluster"))
+```
+
+## More data
+
+```{r more-data}
+set.seed(123)
+n = 100
+x = runif(n, 0, 1000)
+y = x * sin(.01*x) + rnorm(n, 0, 10)
+df = data.frame(x, y)
+ggplot(data=df, mapping=aes(x = x, y = y)) + geom_point() + geom_line()
+```
+
+```{r more-partition}
+p0 = ggplot() + geom_line(data=df, mapping=aes(x = x, y = y))
+gridExtra::grid.arrange(
+  p0 + geom_vline(mapping = aes(xintercept = partition(df$x, df$y, 20), color = "rpart")),
+  p0 + geom_vline(mapping = aes(xintercept = partition(df$x, df$y, 20, method = "cluster"), color = "cluster"))
+)
+```
+
+
+
+
+
+
+
