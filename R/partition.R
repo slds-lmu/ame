@@ -4,7 +4,7 @@
 #' @param x
 #' @param y
 #' @param n.parts
-#' @param method c("CART", "cluster")
+#' @param part.method c("CART", "cluster")
 #'
 #' @section TODOs:
 #' \itemize{
@@ -16,10 +16,10 @@
 #' @export
 #'
 #' @examples
-partition = function(x, y, n.parts, method="CART") {
-  if (method == "CART") return(partitionCART(x, y, (n.parts-1)))
-  else if (method == "cluster") return(partitionCluster(x, y, n.parts))
-  else stop("Partition method \'", method, "\' not implemented.")
+partition = function(x, y, n.parts, part.method="CART") {
+  if (part.method == "CART") return(partitionCART(x, y, (n.parts-1)))
+  else if (part.method == "cluster") return(partitionCluster(x, y, n.parts))
+  else stop("Partition method \'", part.method, "\' not implemented.")
 }
 
 #' Use CART algorithm
