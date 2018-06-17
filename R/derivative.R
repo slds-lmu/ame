@@ -32,34 +32,37 @@ derivative.numeric = function(x, feature, data, model,
 
 derivative.factor = function(x, feature, data, model,
   predict.fun = function(object, newdata) predict(object, newdata = newdata), ...) {
-  lvl = levels(x)
-  out = setNames(lapply(lvl, function(lev) {
-    predictModifiedData(x = lev, feature = feature, data = data,
+  lvls = levels(x)
+  out = setNames(lapply(lvls, function(level) {
+    predictModifiedData(x = factor(level, levels = lvls), feature = feature, data = data,
       model = model, predict.fun = predict.fun)
-  }), lvl)
+  }), lvls)
   return(out)
 }
 
 derivative.logical = function(x, feature, data, model,
   predict.fun = function(object, newdata) predict(object, newdata = newdata), ...) {
-  lvl = unique(x)
-  out = setNames(lapply(lvl, function(lev) {
-    predictModifiedData(x = lev, feature = feature, data = data,
+  lvls = c(FALSE, TRUE)
+  out = setNames(lapply(lvls, function(level) {
+    predictModifiedData(x = level, feature = feature, data = data,
       model = model, predict.fun = predict.fun)
-  }), lvl)
+  }), lvls)
   return(out)
 }
 
 derivative.character = function(x, feature, data, model,
   predict.fun = function(object, newdata) predict(object, newdata = newdata), ...) {
-  x = as.factor(x) #droplevels(factor(x, levels = levels(data[[feature]])))
-  data[[feature]] = as.factor(data[[feature]])
-  derivative(x, feature, data, model, predict.fun, ...)
+  lvls = unique(x)
+  out = setNames(lapply(lvls, function(level) {
+    predictModifiedData(x = level, feature = feature, data = data,
+      model = model, predict.fun = predict.fun)
+  }), lvls)
 }
 
 # Modify feature in data set and predict using this modified data
 predictModifiedData = function(x, feature, data, model, predict.fun) {
-  newdata = replace(data, list = which(colnames(data) == feature), values = x)
+  #newdata = replace(data, list = which(colnames(data) == feature), values = x)
+  newdata = replace(data, feature, values = x)
   p = predict.fun(model, newdata = newdata)
   if (length(x) == 1) mean(p) else p
 }
