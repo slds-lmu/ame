@@ -13,15 +13,16 @@ test_that("check derivative", {
   deriv.character = derivative(margex[[feat]], margex.mod, data = margex,
     feature = feat, predict.fun = predict.fun)
 
-  expect_equal(deriv.factor, deriv.character)
+  expect_equal(deriv.factor[["0"]], deriv.character[["0"]])
+  expect_equal(deriv.factor[["1"]], deriv.character[["1"]])
 
   margex[[feat]] = margex[[feat]] == "1"
   margex.mod = glm(margex.form, data = margex, family = binomial)
   deriv.logical = derivative(margex[[feat]], margex.mod, data = margex,
     feature = feat, predict.fun = predict.fun)
 
-  names(deriv.logical) = as.numeric(as.logical(names(deriv.logical)))
-  expect_equal(deriv.factor, deriv.logical[names(deriv.factor)])
+  expect_equal(deriv.factor[["0"]], deriv.logical[["FALSE"]])
+  expect_equal(deriv.factor[["1"]], deriv.logical[["TRUE"]])
 })
 #
 # features = c("age")
