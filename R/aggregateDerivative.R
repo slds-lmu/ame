@@ -21,7 +21,7 @@ aggregateDerivative = function(x, feature, data, model,
     effect = effect[names(effect) != reflev] - effect[names(effect) == reflev]
     return(setNames(effect, paste0(feature, names(effect))))
   } else if (is.character(x)) {
-    reflev = unique(x)[1]
+    reflev = sort(unique(x))[1]
     effect = unlist(effect)
     effect = effect[names(effect) != reflev] - effect[names(effect) == reflev]
     return(setNames(effect, paste0(feature, names(effect))))
