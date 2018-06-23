@@ -25,7 +25,8 @@ compAMEFeature.factor = function(x, object, feature, data, predict.fun, aggr.fun
     prediction.lvl = predict.fun(object, data.lvl)
     aggr.fun(prediction.lvl - prediction.reference) # support alternative aggr functions
   }, FUN.VALUE = NA_real_)
-  return(setNames(ame, paste(feature, names(ame), sep = ".")))
+  #return(setNames(ame, paste(feature, names(ame), sep = ".")))
+  return(ame)
 }
 
 compAMEFeature.logical = function(x, object, feature, data, predict.fun, aggr.fun, delta) {
@@ -35,7 +36,8 @@ compAMEFeature.logical = function(x, object, feature, data, predict.fun, aggr.fu
   prediction.false = predict.fun(object, data)
   prediction.true = predict.fun(object, data.true)
   ame = aggr.fun(prediction.true - prediction.false) # support alternative aggr functions
-  return(setNames(ame, paste(feature, "TRUE", sep = ".")))
+  #return(setNames(ame, paste(feature, "TRUE", sep = ".")))
+  return(ame)
 }
 
 compAMEFeature.character = function(x, object, feature, data, predict.fun, delta) {

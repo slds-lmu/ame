@@ -25,7 +25,7 @@ derivative = function(x, feature, data, model,
 derivative.numeric = function(x, feature, data, model,
   predict.fun = function(object, newdata) predict(object, newdata = newdata), ...) {
   # calculate numerical derivative
-  out = numDeriv::grad(func = predictModifiedData, x = x, method = "simple",
+  out = numDeriv::grad(func = predictModifiedData, x = x,
     feature = feature, data = data, model = model, predict.fun = predict.fun, ...)
   return(out)
 }

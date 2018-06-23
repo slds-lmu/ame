@@ -106,14 +106,13 @@ gridExtra::grid.arrange(p1, p2, nrow = 2)
 split.points = partition(df$x1, poly12.ime$x1, 2)
 split.points = partition(df$x1[-74], poly12.ime$x1[-74], 2) # ohne Ausreißer
 split.points = partition(df$x1[-74], poly12.ime$x1[-74], 7) # ohne Ausreißer
+split.points = partition(df$x1[-74], poly12.ime$x1[-74], 7, part.method = "cluster") # ohne Ausreißer
 
 ggplot(df, aes(x = x1, y = y)) + geom_point() +
   geom_point(mapping = aes(x = df$x1, y = poly12.ime$x1, col = "AME")) +
   geom_point(aes(x = df$x1, y = poly12.y.hat, col = "y.hat")) +
-  geom_vline(xintercept = split.points)
+  geom_vline(xintercept = split.points) +
   xlab("x1") + ylab("y.hat")
-
-
 ```
 
 
@@ -197,7 +196,7 @@ compAME(rf.mod.mlr, fuel.tsk, names(df)[-1], parallel = TRUE)
 ## numeric and categorical features
 
 ```{r dgp-numeric-and-binary}
-n = 10000
+n = 100
 bin1 = rbinom(n, 1, prob = .75)
 bin2 = (rbinom(n, 1, prob = .35) + 2) * 2
 cat1.map = setNames(c(0,-2,2,6), c("blue", "red2", "red", "green"))
@@ -222,30 +221,27 @@ knitr::kable(head(df))
 ### Linear model
 
 ```{r}
-#lm.mod = lm(y ~ x1 + x2 + x3 + I(x3^2) + x4, data = df)
 lm.mod = lm(y ~ ., data = df)
 summary(lm.mod)
 computeAME(lm.mod, df, names(df)[-1])
-compAME(lm.mod, df, names(df)[-1])
+unlist(compAME(lm.mod, df, names(df)[-1]))
 system.time(computeAME(lm.mod, df, names(df)[-1]))
 system.time(compAME(lm.mod, df, names(df)[-1]))
-system.time(compAME(lm.mod, df, names(df)[-1], parallel = TRUE))
 ```
 
 ```{r}
 # data generating process without logic:
 y = .4 + 2.3 * bin1 + 2.2 * x1 + bin2 * x2 + 3 * x2 + 1.7 * x3^2 + x4 +
-  .1 * cat1.map[cat1] + .1 * ord1.map[ord1] +
-  ifelse(char1 == "A", 0, ifelse(char1 == "E", -1, 1)) + eps
-df = data.frame(y, x1, x2, x3, x4, bin1 = factor(bin1), bin2 = factor(bin2), cat1, ord1, char1)
+  .1 * cat1.map[cat1] + .1 * ord1.map[ord1] + eps
+  #ifelse(char1 == "A", 0, ifelse(char1 == "E", -1, 1)) + eps
+df = data.frame(y, x1, x2, x3, x4, bin1 = factor(bin1), bin2 = factor(bin2), cat1, ord1)
 knitr::kable(head(df))
 
 regr.tsk = makeRegrTask(data = df, target = "y")
 lm.lrn = makeLearner("regr.lm")
 lm.mod.mlr = train(lm.lrn, regr.tsk)
 lm.mod.mlr$learner.model
-compAME(lm.mod.mlr, regr.tsk, names(df)[-1], parallel = TRUE)
-system.time(compAME(lm.mod.mlr, regr.tsk, names(df)[-1], parallel = TRUE))
+unlist(compAME(lm.mod.mlr, regr.tsk, names(df)[-1]))
 computeAME(lm.mod.mlr, df, names(df[-1]))
 ```
 
@@ -266,8 +262,8 @@ rf.lrn = makeLearner("regr.randomForest")
 rf.mod.mlr = train(rf.lrn, regr.tsk)
 rf.pred = predict(rf.mod.mlr, regr.tsk)
 performance(rf.pred, list(mse, rsq, expvar))
-compAME(rf.mod.mlr, regr.tsk, names(df)[-1])
-# computeAME(rf.mod.mlr, df, "x1")
+unlist(compAME(rf.mod.mlr, regr.tsk, names(df)[-1]))
+computeAME(rf.mod.mlr$learner.model, df, names(df)[-1])
 # computeAME(rf.mod.mlr, df, "bin1") #TODO: error
 #   Type of predictors in new data do not match that of the training data.
 ```
