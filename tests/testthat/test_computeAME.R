@@ -1,7 +1,9 @@
 context("check computeAME")
 
 checkEqualToMargins = function(x, y) {
-  expect_equal(sort(unname(summary(x)$AME)), sort(unname(summary(y)$AME)))
+  # expect_equal(sort(unname(summary(x)$AME)), sort(unname(summary(y)$AME)))
+  # only compare absolute values as long you can't choose "positive class"
+  expect_equal(sort(abs(unname(summary(x)$AME))), sort(abs(unname(summary(y)$AME))))
 }
 
 test_that("check computeAME for classification", {
