@@ -18,9 +18,15 @@
 #' @examples
 partition = function(x, y, n.parts, part.method="CART") {
   if (part.method == "CART") return(partitionCART(x, y, (n.parts-1)))
+  #else if (part.method == "MOB") return(partitionMOB(x, y, n.parts))
   else if (part.method == "cluster") return(partitionCluster(x, y, n.parts))
   else stop("Partition method \'", part.method, "\' not implemented.")
 }
+
+#' Use mob
+#partitionMOB = function(x, y, n.parts) {
+  #TODO
+#}
 
 #' Use CART algorithm
 partitionCART = function(x, y, max.splits) {

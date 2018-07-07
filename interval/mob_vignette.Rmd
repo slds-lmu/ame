@@ -1,0 +1,114 @@
+---
+title: Partykit mob Vignette
+author: 
+  - name: Bodo Burger
+date: 2018-06-23
+output:
+  html_document: 
+    toc: yes
+  github_document:
+    toc: yes
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = TRUE,
+                      cache = TRUE, cache.path = "cache/",
+                      fig.path = "figures/file-name-")
+library("ggplot2")
+theme_set(theme_light())
+set.seed(4218)
+library("partykit")
+```
+
+## What does mob algorithm do?
+
+1. fit model once to all obs in current node
+2. assess whether parameter estimates are unstable regarding each *partitioning feature* and select
+   feature that induces the highest instability
+3. compute split points
+4. repeat with child nodes
+
+# Illustrations
+
+## Demand for economic journals
+
+```{r}
+data("Journals", package = "AER")
+Journals = transform(Journals, age = 2000 - foundingyear,
+  chars = charpp * pages)
+journals.mod = lmtree(log(subs) ~ log(price/citations) | price + citations + age + chars + society,
+  data = Journals, minsize = 10, verbose = TRUE)
+plot(journals.mod)
+```
+
+
+## Boston Housing
+
+```{r }
+data("BostonHousing", package = "mlbench")
+str(BostonHousing)
+BostonHousing = transform(BostonHousing,
+  chas = factor(chas, levels = 0:1, labels = c("no", "yes")),
+  rad = factor(rad, ordered = TRUE))
+bh.mod = lmtree(medv ~ log(lstat) + I(rm^2) | zn + indus + chas + nox + age + dis + rad + tax +
+    crim + b + ptratio, data = BostonHousing)
+plot(bh.mod)
+
+nodeids(bh.mod, terminal = TRUE)
+?get_paths
+```
+
+## Teaching ratings data
+
+```{r}
+data("TeachingRatings", package = "AER")
+tr = subset(TeachingRatings, credits == "more")
+
+tr.null = lm(eval ~ 1, data = tr, weights = students)
+tr.lm = lm(eval ~ beauty + gender + minority + native + tenure + division, data = tr,
+  weights = students)
+tr.tree = lmtree(eval ~ beauty | minority + age + gender + division + native + tenure, data = tr,
+  weights = students, caseweights = FALSE)
+tr.null
+tr.lm
+tr.tree
+plot(tr.tree)
+```
+
+## Titanic survival data
+
+```{r}
+data("Titanic", package = "datasets")
+ttnc = as.data.frame(Titanic)
+ttnc = ttnc[rep(1:nrow(ttnc), ttnc$Freq), 1:4]
+ttnc = transform(ttnc, Treatment = factor(Sex == "Female" | Age == "Child",
+  levels = c(FALSE, TRUE), labels = c("Male&Adult", "Female|Child")))
+ttnc.tree = glmtree(Survived ~ Treatment | Class + Sex + Age, data = ttnc, family = binomial,
+  alpha = .01)
+plot(ttnc.tree)
+```
+
+## German breast cancer data
+
+```{r}
+data("GBSG2", package = "TH.data")
+GBSG2$time = GBSG2$time / 365
+library(survival)
+wbreg = function(y, x, start = NULL, weights = NULL, offset = NULL, ...) {
+  survreg(y ~ 0 + x, weights = weights, dist = "weibull", ...)
+}
+logLik.survreg = function(object, ...)
+  structure(object$loglik[2], df = sum(object$df), class = "logLik")
+gbsg2.tree = mob(Surv(time, cens) ~ horTh + pnodes | age + tsize + tgrade + progrec + estrec +
+    menostat, data = GBSG2, fit = wbreg, control = mob_control(minsize = 80))
+plot(gbsg2.tree)
+
+```
+
+
+
+
+
+
+
