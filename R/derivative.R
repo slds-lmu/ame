@@ -12,6 +12,7 @@
 #' @param ...
 #'   Further options passed down to the \code{\link[numDeriv]{grad}} function.
 #'
+#' @export
 derivative = function(x, feature, data, model,
   predict.fun = function(object, newdata) predict(object, newdata = newdata), ...) {
   # FIXME: currently we only use x as vector of length nrow(data), x of length 1 is necessary for partial dependence derivatives
@@ -22,6 +23,7 @@ derivative = function(x, feature, data, model,
   UseMethod("derivative")
 }
 
+#' @export
 derivative.numeric = function(x, feature, data, model,
   predict.fun = function(object, newdata) predict(object, newdata = newdata), ...) {
   # calculate numerical derivative
@@ -30,6 +32,7 @@ derivative.numeric = function(x, feature, data, model,
   return(out)
 }
 
+#' @export
 derivative.factor = function(x, feature, data, model,
   predict.fun = function(object, newdata) predict(object, newdata = newdata), ...) {
   lvls = levels(x)
@@ -40,6 +43,7 @@ derivative.factor = function(x, feature, data, model,
   return(out)
 }
 
+#' @export
 derivative.logical = function(x, feature, data, model,
   predict.fun = function(object, newdata) predict(object, newdata = newdata), ...) {
   lvls = c(FALSE, TRUE)
@@ -50,6 +54,7 @@ derivative.logical = function(x, feature, data, model,
   return(out)
 }
 
+#' @export
 derivative.character = function(x, feature, data, model,
   predict.fun = function(object, newdata) predict(object, newdata = newdata), ...) {
   lvls = unique(x)

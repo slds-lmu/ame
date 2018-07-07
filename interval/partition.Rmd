@@ -46,18 +46,31 @@ n = 100
 x = runif(n, 0, 1000)
 y = x * sin(.01*x) + rnorm(n, 0, 10)
 df = data.frame(x, y)
-ggplot(data=df, mapping=aes(x = x, y = y)) + geom_point() + geom_line()
+poly12.mod = lm(y ~ poly(x, 12, raw = TRUE), data = df)
+ggplot(data=df, mapping=aes(x = x, y = y)) + geom_point(alpha = .5, size = 3) +
+  geom_line(mapping = aes(y = predict(poly12.mod)), color = "red")
+me = ame::derivative(x, "x", df, poly12.mod)
 ```
 
 ```{r more-partition}
 p0 = ggplot() + geom_line(data=df, mapping=aes(x = x, y = y))
-gridExtra::grid.arrange(
-  p0 + geom_vline(mapping = aes(xintercept = partition(df$x, df$y, 20), color = "rpart")),
-  p0 + geom_vline(mapping = aes(xintercept = partition(df$x, df$y, 20, part.method = "cluster"), color = "cluster"))
-)
+# gridExtra::grid.arrange(
+#   p0 + geom_vline(mapping = aes(xintercept = partition(df$x, me, 8), color = "rpart")),
+#   p0 + geom_vline(mapping = aes(xintercept = partition(df$x, me, 8, part.method = "cluster"), 
+#     color = "cluster"))
+# )
+library(patchwork)
+(p0 + geom_vline(mapping = aes(xintercept = partition(df$x, me, 8), color = "rpart"))) /
+(p0 + geom_vline(mapping = aes(xintercept = partition(df$x, me, 8, part.method = "cluster"),
+  color = "cluster")))
 ```
 
 
+```{r mob}
+mob.mod = partykit::lmtree(y ~ x | x, data = df, minsize = 10)
+coef(mob.mod)
+plot(mob.mod)
+```
 
 
 
