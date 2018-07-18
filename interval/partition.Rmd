@@ -73,6 +73,17 @@ plot(mob.mod)
 ```
 
 
+```{r}
+library(ALEPlot)
+ale = ALEPlot(df[, 1, drop=FALSE], poly12.mod, J = 1, pred.fun = function(X.model, newdata) predict(X.model, newdata))
+ggplot(data=df, mapping=aes(x = x, y = y)) + geom_point(alpha = .5, size = 3) +
+  geom_line(mapping = aes(y = predict(poly12.mod)), color = "red") +
+  geom_line(data = data.frame(ale), mapping = aes(x = x.values, y = f.values), col = "blue")
+
+```
+
+
+
 
 
 
