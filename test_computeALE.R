@@ -33,7 +33,7 @@ nnet.mod = train(nnet.lrn, tsk)
 
 ALEPlot::ALEPlot(dt[-1], nnet.mod$learner.model, pred.fun = function(X.model, newdata)
   predict(X.model, newdata), J = 5, K = 50)
-ALE = computeALE(nnet.mod$learner.model, dt, "x5", K = 40)
+ALE = computeALE(nnet.mod$learner.model, dt, "x5", K = 50)
 computeALE(nnet.mod$learner.model, dt, "x5", K = 9)
 lines(ALE$x, ALE$f, col = "blue", lty = 2, lwd = 2)
 
@@ -46,5 +46,5 @@ plot(dt$x5, f.hat, col = "red")
 lines(ALE$x, ALE$f + mean(f.hat), col = "blue", lty = 2, lwd = 2)
 lines(nnet.pd$data$x5, nnet.pd$data$y, col = "green")
 lines(x.grid, y5(x.grid) - y5(0) + mean(f.hat), type = "l", col = "black")
-abline(v = ALE$x, lwd = .5)
-
+#abline(v = ALE$x, lwd = .5)
+legend(0, 12, legend = c("f.hat", "ALE", "PD", "true"), fill = c("red", "blue", "green", "black"))
