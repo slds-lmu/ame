@@ -21,13 +21,14 @@
 #' @examples
 computeALE = function(model, data, feature, K, predict.fun = predict, multiclass = FALSE, minbucket = 5) {
   x = data[, feature]
-  if (K >= length(x)-1) z = sort(x)
-  else {
+  if (K >= length(x)-1) {
+    z = sort(x)
+  } else {
     #z = as.numeric(quantile(x, seq(0, 1, length.out = K+1), type = 1))
     z = c(min(x), as.numeric(quantile(x, seq(1/K, 1, length.out = K),
       type = 1))) # c(min(), quantile()) necessary for K = n
-    z = unique(z) # if K > nrow(data) or x has lots of non-unique values
   }
+  z = unique(z) # if K > nrow(data) or x has lots of non-unique values
   K = length(z) - 1
   # if K >= (n-1) the first two obs are assigned to the first interval
   interval.indices = as.numeric(cut(x, breaks = z, include.lowest = TRUE))
@@ -39,22 +40,29 @@ computeALE = function(model, data, feature, K, predict.fun = predict, multiclass
   data.u[, feature] = z[interval.indices + 1]
   y.hat.l = predict.fun(model, newdata = data.l)
   y.hat.u = predict.fun(model, newdata = data.u)
-  delta = y.hat.u - y.hat.l
+  #delta = y.hat.u - y.hat.l
 
   if (multiclass) { # multi-class
-    nclass = ncol(delta)
+    nclass = ncol(y.hat.l)
     for (i in 1:nclass) {
-      delta[1:K,i] = tapply(delta[,i], interval.indices, mean)
+      #delta[1:K,i] = tapply(delta[,i], interval.indices, mean)
+      y.hat.l[1:K, i] = tapply(y.hat.l[,i], interval.indices, mean)
+      y.hat.u[1:K, i] = tapply(y.hat.u[,i], interval.indices, mean)
     }
-    delta = delta[1:K, ]
+    y.hat.l = y.hat.l[1:K,]
+    y.hat.u = y.hat.u[1:K,]
+    delta = y.hat.u - y.hat.l
+    #delta = delta[1:K, ]
+    #f = apply(rbind(y.hat.l[1, ], delta), 2, function(x) cumsum(x))
     f = apply(delta, 2, function(x) c(0, cumsum(x)))
-    f = apply(f, 2, function(f) f - sum((f[1:K] + f[2:(K + 1)])/2 * w) / sum(w))
-    #f = f + matrix(y.hat.l[1,], K+1, nclass, byrow = TRUE)
+    f = f + matrix(y.hat.l[1,], K+1, nclass, byrow = TRUE)
+    #f = apply(f, 2, function(f) f - sum((f[1:K] + f[2:(K + 1)])/2 * w) / sum(w))
     ale = apply(delta, 2, function(x) x/diff(z))
-    ale.plot.data = reshape2::melt(data = data.frame(x = z, f), id.vars = "x",
-      variable.name = "class", value.name = "probability")
+    ale.plot.data = reshape2::melt(data = data.frame(x = z, f), id.vars = "x", variable.name = "class", value.name = "probability")
+    #ale.plot.data = reshape2::melt(data = data.frame(x = z[-length(z)], y.hat.l), id.vars = "x", variable.name = "class", value.name = "probability")
   } else {
-    delta = as.numeric(tapply(delta, interval.indices, mean)) # provide alternative aggregation function
+    delta = y.hat.u - y.hat.l # probably better (numerically) to do tapply on y.hat, see multiclass
+    delta = as.numeric(tapply(delta, interval.indices, mean))
     f = c(0, cumsum(delta))
     f = f - sum((f[1:K] + f[2:(K + 1)])/2 * w) / sum(w)
     ale = delta/diff(z)
