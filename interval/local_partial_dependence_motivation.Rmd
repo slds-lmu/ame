@@ -1,0 +1,180 @@
+---
+title: Local Partial Dependence Motivation
+author: Bodo Burger
+date: 2018-07
+output:
+  pdf_document:
+    toc: yes
+  html_document: 
+    toc: yes
+  github_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = TRUE,
+                      cache = TRUE, cache.path = "cache/",
+                      fig.path = "figures/file-name-",
+                      fig.height = 3, fig.width = 5)
+library("mlr")
+library("ggplot2")
+library("gridExtra")
+library("nnet")
+library("gbm")
+library("e1071")
+devtools::load_all()
+theme_set(theme_light())
+set.seed(4218)
+```
+
+# Iris data set
+
+```{r petal-plot,fig.height=3,fig.width=5}
+knitr::kable(cor(iris[-5]))
+ggplot(data = iris, aes(x = Petal.Length, y = Petal.Width, col = Species)) + geom_point()
+```
+
+Petal.width and Petal.length highly correlated. Class "setosa" is only expected for 
+length $< 2$ and width $<.6$.
+
+# Fit different models
+
+We fit a neural net, gradient boosting machine, and support vector machine.
+
+```{r model-fitting}
+train.sub = rep(TRUE, getTaskSize(iris.task))
+#train.sub[c(sample(1:50, 10), sample(1:50, 10) + 50, sample(1:50, 10) + 100)] = FALSE
+
+nnet.lrn = makeLearner("classif.nnet", skip = FALSE, size = 20, decay = 0.0001, maxit = 1000,
+  trace = FALSE, predict.type = "prob")
+nnet.mod = train(nnet.lrn, iris.task, subset = train.sub)
+
+gbm.lrn = makeLearner("classif.gbm", distribution = "multinomial", n.trees = 1000,
+  predict.type = "prob")
+gbm.mod = train(gbm.lrn, iris.task, subset = train.sub)
+
+svm.lrn = makeLearner("classif.svm", predict.type = "prob")
+svm.mod = train(svm.lrn, iris.task, subset = train.sub)
+```
+
+Test accuracy is nearly 1 for all methods.
+
+# PD can be misleading
+
+## PD nnet
+
+```{r pd-nnet,fig.width=6}
+plotPartialDependence(generatePartialDependenceData(nnet.mod, iris.task,
+  features = c("Petal.Length", "Petal.Width")))
+```
+
+Class *Setosa*: prob for *Petal.Length* is plausible, but prob for *Petal.Width* does not change, while you would expect it to be nearly zero for larger values.
+
+ICE plot for class *setosa* and feature *petal.width* shows what happens without taking the mean:
+
+```{r ice-ice,fig.width=4}
+nnet.ICE = generatePartialDependenceData(nnet.mod, iris.task, features = "Petal.Width", 
+  individual = TRUE)
+ggplot(subset(nnet.ICE$data, Class == "setosa"), aes(x = Petal.Width, y = Probability, 
+  group = n)) + geom_point() + geom_line()
+```
+
+## PD gbm
+
+Similar picture for gbm:
+
+```{r pd-gbm}
+plotPartialDependence(generatePartialDependenceData(gbm.mod, iris.task,
+  features = c("Petal.Length", "Petal.Width")))
+```
+
+## PD svm
+
+```{r pd-svm}
+plotPartialDependence(generatePartialDependenceData(svm.mod, iris.task,
+  features = c("Petal.Length", "Petal.Width")))
+```
+
+Here, plot indicates that prob for class *versicolor* is higher than prob for class *setosa* for small values of *Petal.Width*.
+
+We can further see: partial dependence heavily depends on the used method (plots differ from method to method).
+
+
+# ALEPlot
+
+```{r ale-nnet-petlen}
+nnet.ALE = computeALE(nnet.mod$learner.model, iris, "Petal.Length", K = 20, multiclass = TRUE)
+ggplot(data = nnet.ALE$ale.plot.data, aes(x = x, y = probability, group = class, col = class)) +
+  geom_line() + geom_point() + xlab("Length.Width")
+```
+
+```{r ale-nnet-petwid}
+nnet.ALE = computeALE(nnet.mod$learner.model, iris, "Petal.Width", K = 20, multiclass = TRUE)
+ggplot(data = nnet.ALE$ale.plot.data, aes(x = x, y = probability, group = class, col = class)) +
+  geom_line() + geom_point() + xlab("Petal.Width")
+```
+
+Plot for *Petal.Length* looks plausible, but for *Petal.Width*:
+
+- probability for *setosa* does not change; this happens because the method "skips" the area where
+  the predicted probability of *setosa* changes (is my guess)
+- because of this the scale is not useful (negative probabilities)
+
+
+# Alternative: Local Partial Dependence
+
+Calculate Partial Dependence only with points nearby.
+
+## LPD nnet
+
+```{r lpd-nnet,fig.height=3,fig.width=5}
+LPD.petwid = computeLPD(nnet.mod$learner.model, iris, "Petal.Width", n = 20, multiclass = TRUE)
+ggplot(data = LPD.petwid$plot.data, aes(x = x, y = probability, group = class, col = class)) +
+  geom_line() + geom_point() + xlab("Petal.Width")
+
+LPD.petlen = computeLPD(nnet.mod$learner.model, iris, "Petal.Length", n = 20, multiclass = TRUE)
+ggplot(data = LPD.petlen$plot.data, aes(x = x, y = probability, group = class, col = class)) +
+  geom_line() + geom_point() + xlab("Petal.Length")
+```
+
+## LPD gbm
+
+```{r lpd-gbm,fig.height=3,fig.width=5}
+# Petal.Width:
+gbm.LPD.petwid = computeLPD(gbm.mod$learner.model, iris, "Petal.Width", n = 20, multiclass = TRUE,
+  predict.fun = function(object, newdata) predict(object, newdata, type = "response", n.trees = 1000)[, , 1])
+ggplot(data = gbm.LPD.petwid$plot.data, aes(x = x, y = probability, group = class, col = class)) +
+  geom_line() + geom_point() + xlab("Petal.Width")
+
+# Petal.Length:
+gbm.LPD.petlen = computeLPD(gbm.mod$learner.model, iris, "Petal.Length", n = 20, multiclass = TRUE,
+  predict.fun = function(object, newdata) predict(object, newdata, type = "response", n.trees = 1000)[, , 1])
+ggplot(data = gbm.LPD.petlen$plot.data, aes(x = x, y = probability, group = class, col = class)) +
+  geom_line() + geom_point() + xlab("Petal.Length")
+```
+
+## LPD SVM
+
+```{r lpd-svm,fig.height=3,fig.width=5}
+svm.LPD.petwid = computeLPD(svm.mod$learner.model, iris, "Petal.Width", n = 20, multiclass = TRUE,
+  predict.fun = function(object, newdata) attributes(predict(object, newdata, probability = TRUE))[["probabilities"]])
+ggplot(data = svm.LPD.petwid$plot.data, aes(x = x, y = probability, group = class, col = class)) +
+  geom_line() + geom_point() + xlab("Petal.Width")
+```
+
+All LPD plots show a similar picture regardless of the fitting method.
+
+## Compare to simply plotting the predictions
+
+```{r}
+svm.predict.probs = attributes(predict(svm.mod$learner.model, iris, probability = TRUE))[["probabilities"]]
+svm.predict.data = reshape2::melt(data.frame(Petal.Width = iris$Petal.Width, svm.predict.probs), 
+  id.vars = "Petal.Width", variable.name = "class", value.name = "probability")
+ggplot(data = svm.predict.data, aes(x = Petal.Width, y = probability, group = class, col = class)) +
+  geom_point() + geom_line()
+```
+
+## From LPD to Marginal effects?
+
+If you choose a uniform grid size for the LPD could simply divide the difference between
+two grid points by the distance of the gird points? (does this allow a useful interpretation?)
