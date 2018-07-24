@@ -70,7 +70,9 @@ plotPartialDependence(generatePartialDependenceData(nnet.mod, iris.task,
 
 Class *Setosa*: prob for *Petal.Length* is plausible, but prob for *Petal.Width* does not change, while you would expect it to be nearly zero for larger values.
 
-ICE plot for class *setosa* and feature *petal.width* shows what happens without taking the mean:
+ICE plot for class *setosa* and feature *petal.width* shows the reason for this. Without taking the mean
+you can see that some observations always predict *setosa* and some never, regardless of the value of
+*petal.width*.
 
 ```{r ice-ice,fig.width=4}
 nnet.ICE = generatePartialDependenceData(nnet.mod, iris.task, features = "Petal.Width", 
@@ -105,7 +107,7 @@ We can further see: partial dependence heavily depends on the used method (plots
 ```{r ale-nnet-petlen}
 nnet.ALE = computeALE(nnet.mod$learner.model, iris, "Petal.Length", K = 20, multiclass = TRUE)
 ggplot(data = nnet.ALE$ale.plot.data, aes(x = x, y = probability, group = class, col = class)) +
-  geom_line() + geom_point() + xlab("Length.Width")
+  geom_line() + geom_point() + xlab("Petal.Length")
 ```
 
 ```{r ale-nnet-petwid}
@@ -129,12 +131,9 @@ Calculate Partial Dependence only with points nearby.
 
 ```{r lpd-nnet,fig.height=3,fig.width=5}
 LPD.petwid = computeLPD(nnet.mod$learner.model, iris, "Petal.Width", n = 20, multiclass = TRUE)
-ggplot(data = LPD.petwid$plot.data, aes(x = x, y = probability, group = class, col = class)) +
-  geom_line() + geom_point() + xlab("Petal.Width")
-
+plotLPD(LPD.petwid)
 LPD.petlen = computeLPD(nnet.mod$learner.model, iris, "Petal.Length", n = 20, multiclass = TRUE)
-ggplot(data = LPD.petlen$plot.data, aes(x = x, y = probability, group = class, col = class)) +
-  geom_line() + geom_point() + xlab("Petal.Length")
+plotLPD(LPD.petlen)
 ```
 
 ## LPD gbm
@@ -143,14 +142,14 @@ ggplot(data = LPD.petlen$plot.data, aes(x = x, y = probability, group = class, c
 # Petal.Width:
 gbm.LPD.petwid = computeLPD(gbm.mod$learner.model, iris, "Petal.Width", n = 20, multiclass = TRUE,
   predict.fun = function(object, newdata) predict(object, newdata, type = "response", n.trees = 1000)[, , 1])
-ggplot(data = gbm.LPD.petwid$plot.data, aes(x = x, y = probability, group = class, col = class)) +
-  geom_line() + geom_point() + xlab("Petal.Width")
+plotLPD(gbm.LPD.petwid)
 
 # Petal.Length:
 gbm.LPD.petlen = computeLPD(gbm.mod$learner.model, iris, "Petal.Length", n = 20, multiclass = TRUE,
   predict.fun = function(object, newdata) predict(object, newdata, type = "response", n.trees = 1000)[, , 1])
 ggplot(data = gbm.LPD.petlen$plot.data, aes(x = x, y = probability, group = class, col = class)) +
   geom_line() + geom_point() + xlab("Petal.Length")
+plotLPD(gbm.LPD.petlen)
 ```
 
 ## LPD SVM
@@ -158,8 +157,7 @@ ggplot(data = gbm.LPD.petlen$plot.data, aes(x = x, y = probability, group = clas
 ```{r lpd-svm,fig.height=3,fig.width=5}
 svm.LPD.petwid = computeLPD(svm.mod$learner.model, iris, "Petal.Width", n = 20, multiclass = TRUE,
   predict.fun = function(object, newdata) attributes(predict(object, newdata, probability = TRUE))[["probabilities"]])
-ggplot(data = svm.LPD.petwid$plot.data, aes(x = x, y = probability, group = class, col = class)) +
-  geom_line() + geom_point() + xlab("Petal.Width")
+plotLPD(svm.LPD.petwid)
 ```
 
 All LPD plots show a similar picture regardless of the fitting method.

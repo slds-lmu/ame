@@ -35,6 +35,9 @@ nnet.ICE = generatePartialDependenceData(nnet.mod, iris.task, features = "Petal.
 ggplot(subset(nnet.ICE$data, Class == "setosa"), aes(x = Petal.Width, y = Probability, group = n)) +
   geom_point() + geom_line()
 # so PD averages lots of prob=1 and prob=0 --> PD missleading
+nnet.ICE = generatePartialDependenceData(nnet.mod, iris.task, features = "Petal.Length", individual = TRUE)
+ggplot(subset(nnet.ICE$data, Class == "setosa"), aes(x = Petal.Length, y = Probability, group = n)) +
+  geom_point() + geom_line()
 
 ALEPlot(iris[-5], nnet.mod$learner.model, pred.fun = function(X.model, newdata) predict(X.model, newdata)[,"setosa"], J = 4)
 
