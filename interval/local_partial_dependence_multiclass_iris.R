@@ -54,12 +54,17 @@ ggplot(data = LPD.petwid$plot.data, aes(x = x, y = probability, group = class, c
   geom_line() + geom_point()
 plotPartialDependence(generatePartialDependenceData(nnet.mod, iris.task, features = "Petal.Width", n = 10))
 
+WPD.petwid = computeWPD(nnet.mod$learner.model, iris, "Petal.Width", n = 10, multiclass = TRUE)
+plotLPD(WPD.petwid)
+
 # Petal.Length:
 LPD.petlen = computeLPD(nnet.mod$learner.model, iris, "Petal.Length", n = 40, multiclass = TRUE)
 ggplot(data = LPD.petlen$plot.data, aes(x = x, y = probability, group = class, col = class)) +
   geom_line() + geom_point()
 plotPartialDependence(generatePartialDependenceData(nnet.mod, iris.task, features = "Petal.Length", n = 40))
 
+WPD.petlen = computeWPD(nnet.mod$learner.model, iris, "Petal.Length", n = 40, multiclass = TRUE)
+plotLPD(WPD.petlen)
 
 ########################-
 # Gradient Boosting ####

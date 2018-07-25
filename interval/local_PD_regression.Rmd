@@ -57,6 +57,8 @@ plot(x.grid, y5(x.grid), type = "l")
 mtext("True partial effects", outer = TRUE, cex = 1.5)
 y = y1(x1) + y2(x2) + y3(x3) + y4(x4) + y5(x5) + rnorm(n, 0, .1)
 dt = data.frame(y, x1, x2, x3, x4, x5)
+#y = y1(x1) + y5(x5) + rnorm(n, 0, .1)
+#dt = data.frame(y, x1, x5)
 knitr::kable(cor(dt))
 ```
 
@@ -86,34 +88,63 @@ gbm.mod = train(gbm.lrn, tsk)
 # LPD Linear Model
 
 ```{r,fig.width=9}
-lm.lpd.x1 = computeLPD(lm.mod$learner.model, dt, "x1", l = 20)
-p1 = plotLPD(lm.lpd.x1) + ggtitle("LPD, l=20")
-lm.lpd.x1 = computeLPD(lm.mod$learner.model, dt, "x1", l = 180)
-p2 = plotLPD(lm.lpd.x1) + ggtitle("LPD, l = 200")
-p3 = plotPartialDependence(generatePartialDependenceData(lm.mod, tsk, "x1", n = 20,
-  individual = FALSE)) + ggtitle("PD")
-gridExtra::grid.arrange(p1, p2, p3, ncol = 3)
+gridExtra::grid.arrange(
+  plotLPD(computeLPD(lm.mod$learner.model, dt, "x1")) + ggtitle("LPD, l=20"),
+    #scale_y_continuous(limits = c(-10,12)),
+  plotLPD(computeLPD(lm.mod$learner.model, dt, "x1", l = 200)) + ggtitle("LPD, l = 200"),
+  plotPartialDependence(generatePartialDependenceData(lm.mod, tsk, "x1", n = 30,
+  individual = FALSE, derivative = FALSE)) + ggtitle("PD"),
+ncol = 3)
 ```
 
 LPD does not produce a straight line with slope equal to the coefficient of the linear model for low l.
 For *l = nrow(data)* LPD equals PD.
 
 ```{r}
-l = 50
+l = 20
 gridExtra::grid.arrange(
   plotLPD(computeLPD(lm.mod$learner.model, dt, "x2", l = l)),
   plotLPD(computeLPD(lm.mod$learner.model, dt, "x3", l = l)),
   plotLPD(computeLPD(lm.mod$learner.model, dt, "x4", l = l)),
   plotLPD(computeLPD(lm.mod$learner.model, dt, "x5", l = l)),
   ncol = 2)
+
+computeLPD(lm.mod$learner.model, dt, "x2", derivative = TRUE)$y.hat
 ```
 
 # LPD neural net
 
 ```{r}
-plotLPD(computeLPD(nnet.mod$learner.model, dt, "x2", n = 20, l = 120))
+par(mfrow = c(1,1))
+plotLPD(computeLPD(nnet.mod$learner.model, dt, "x5"))
+plotLPD(computeWPD(nnet.mod$learner.model, dt, "x5"))
+plotLPD(computeWPD(nnet.mod$learner.model, dt, "x5", wp = 1))
+plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x5", n = 100, individual = FALSE))
+plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x5", n = 10, individual = TRUE))
 
-plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x5", n = 20))
+plotLPD(computeLPD(nnet.mod$learner.model, dt, "x4"))
+plotLPD(computeWPD(nnet.mod$learner.model, dt, "x4", wp = 1))
+plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x4", n = 100, individual = FALSE))
+plot(seq(-.1, 1, .05), y4(seq(-.1, 1, .05)), type = "l")
 
+plotLPD(computeLPD(nnet.mod$learner.model, dt, "x2"))
+plotLPD(computeWPD(nnet.mod$learner.model, dt, "x2"))
+plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x2", n = 20, individual = FALSE))
+plot(seq(0, 1, .05), y2(seq(0, 1, .05)), type = "l")
+
+plotLPD(computeLPD(nnet.mod$learner.model, dt, "x1"))
+plotLPD(computeWPD(nnet.mod$learner.model, dt, "x1"))
+plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x1", n = 100, individual = FALSE))
+plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x1", n = 10, individual = TRUE))
+plot(seq(0, 1, .05), y1(seq(0, 1, .05)), type = "l")
+
+gridExtra::grid.arrange(
+  plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x5", n = 50, derivative = TRUE)) +
+    scale_y_continuous(limits = c(-45,35)) + ggtitle("Partial Deriv"),
+  plotLPD(computeLPD(nnet.mod$learner.model, dt, "x5", n = 50, derivative = TRUE)) +
+    scale_y_continuous(limits = c(-45,35)) + ggtitle("Local Partial Deriv"),
+  ncol = 2)
+
+generatePartialDependenceData(nnet.mod, tsk, "x5", n = 20, derivative = TRUE)
 ```
 
