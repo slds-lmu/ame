@@ -25,7 +25,10 @@
 #' @export
 #'
 #' @examples
-computeLPD = function(model, data, feature, n = 20, l = 6, predict.fun = predict, multiclass = FALSE) {
+computeLPD = function(model, data, feature, n = "default", l = "default", predict.fun = predict,
+                      multiclass = FALSE, derivative = FALSE) {
+  if (n == "default") n = nrow(data)/2
+  if (l == "default") l = nrow(data)/10
   assert_that(l <= nrow(data))
 
   x = data[, feature]
@@ -48,8 +51,12 @@ computeLPD = function(model, data, feature, n = 20, l = 6, predict.fun = predict
     local.indices = which(distances <= max.local.distance)
     local.data = data[local.indices, ]
     local.data[, feature] = x.grid[i]
-    if (multiclass) y.hat[i,] = colMeans(predict.fun(model, newdata = local.data))
-    else y.hat[i] = mean(predict.fun(model, newdata = local.data))
+    if (derivative) {
+      y.hat[i] = mean(derivative(local.data[, feature], feature, local.data, model))
+    } else {
+      if (multiclass) y.hat[i,] = colMeans(predict.fun(model, newdata = local.data))
+      else y.hat[i] = mean(predict.fun(model, newdata = local.data))
+    }
   }
 
   if (multiclass) {
