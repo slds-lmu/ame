@@ -78,7 +78,7 @@ you can see that some observations always predict *setosa* and some never, regar
 nnet.ICE = generatePartialDependenceData(nnet.mod, iris.task, features = "Petal.Width", 
   individual = TRUE)
 ggplot(subset(nnet.ICE$data, Class == "setosa"), aes(x = Petal.Width, y = Probability, 
-  group = n)) + geom_point() + geom_line()
+  group = n)) + geom_point() + geom_line() + ggtitle("ICE for class \"setosa\"")
 ```
 
 ## PD gbm
@@ -107,7 +107,7 @@ We can further see: partial dependence heavily depends on the used method (plots
 ```{r ale-nnet-petlen}
 nnet.ALE = computeALE(nnet.mod$learner.model, iris, "Petal.Length", K = 20, multiclass = TRUE)
 ggplot(data = nnet.ALE$ale.plot.data, aes(x = x, y = probability, group = class, col = class)) +
-  geom_line() + geom_point() + xlab("Petal.Length")
+  geom_line() + geom_point() + xlab("Petal.Length") + ggtitle("ALE plot")
 ```
 
 ```{r ale-nnet-petwid}
@@ -147,8 +147,6 @@ plotLPD(gbm.LPD.petwid)
 # Petal.Length:
 gbm.LPD.petlen = computeLPD(gbm.mod$learner.model, iris, "Petal.Length", n = 20, multiclass = TRUE,
   predict.fun = function(object, newdata) predict(object, newdata, type = "response", n.trees = 1000)[, , 1])
-ggplot(data = gbm.LPD.petlen$plot.data, aes(x = x, y = probability, group = class, col = class)) +
-  geom_line() + geom_point() + xlab("Petal.Length")
 plotLPD(gbm.LPD.petlen)
 ```
 
@@ -165,12 +163,52 @@ All LPD plots show a similar picture regardless of the fitting method.
 ## Compare to simply plotting the predictions
 
 ```{r}
+nnet.predict.probs = predict(nnet.mod$learner.model, iris)
+nnet.predict.data = reshape2::melt(data.frame(Petal.Width = iris$Petal.Width, nnet.predict.probs),
+  id.vars = "Petal.Width", variable.name = "class", value.name = "probability")
+ggplot(data = nnet.predict.data, aes(x = Petal.Width, y = probability, group = class, col = class)) +
+  geom_point() + geom_line() + ggtitle("Predictions nnet")
+
+gbm.predict.probs = predict(gbm.mod$learner.model, iris, type = "response", n.trees = 1000)[, , 1]
+gbm.predict.data = reshape2::melt(data.frame(Petal.Width = iris$Petal.Width, gbm.predict.probs), 
+  id.vars = "Petal.Width", variable.name = "class", value.name = "probability")
+ggplot(data = gbm.predict.data, aes(x = Petal.Width, y = probability, group = class, col = class)) +
+  geom_point() + geom_line() + ggtitle("Predictions GBM")
+
 svm.predict.probs = attributes(predict(svm.mod$learner.model, iris, probability = TRUE))[["probabilities"]]
 svm.predict.data = reshape2::melt(data.frame(Petal.Width = iris$Petal.Width, svm.predict.probs), 
   id.vars = "Petal.Width", variable.name = "class", value.name = "probability")
 ggplot(data = svm.predict.data, aes(x = Petal.Width, y = probability, group = class, col = class)) +
-  geom_point() + geom_line()
+  geom_point() + geom_line() + ggtitle("Predictions SVM")
 ```
+
+# LOESS 
+
+```{r}
+classes = as.character(unique(svm.predict.data$class))
+
+nnet.loess = vapply(classes, function(class) predict(loess(probability ~ Petal.Width,
+  nnet.predict.data[nnet.predict.data$class == class,])), FUN.VALUE = numeric(150))
+nnet.loess.data = nnet.predict.data
+nnet.loess.data$probability = as.numeric(nnet.loess)
+ggplot(data = nnet.loess.data, aes(x = Petal.Width, y = probability, group = class, col = class)) +
+  geom_point() + geom_line() + ggtitle("LOESS nnet")
+
+gbm.loess = vapply(classes, function(class) predict(loess(probability ~ Petal.Width,
+  gbm.predict.data[gbm.predict.data$class == class,])), FUN.VALUE = numeric(150))
+gbm.loess.data = gbm.predict.data
+gbm.loess.data$probability = as.numeric(gbm.loess)
+ggplot(data = gbm.loess.data, aes(x = Petal.Width, y = probability, group = class, col = class)) +
+  geom_point() + geom_line() + ggtitle("LOESS gbm")
+
+svm.loess = vapply(classes, function(class) predict(loess(probability ~ Petal.Width,
+  svm.predict.data[svm.predict.data$class == class,])), FUN.VALUE = numeric(150))
+svm.loess.data = svm.predict.data
+svm.loess.data$probability = as.numeric(svm.loess)
+ggplot(data = svm.loess.data, aes(x = Petal.Width, y = probability, group = class, col = class)) +
+  geom_point() + geom_line() + ggtitle("LOESS SVM")
+```
+
 
 ## From LPD to Marginal effects?
 
