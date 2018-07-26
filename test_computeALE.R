@@ -47,4 +47,8 @@ lines(ALE$x, ALE$f + mean(f.hat), col = "blue", lty = 2, lwd = 2)
 lines(nnet.pd$data$x5, nnet.pd$data$y, col = "green")
 lines(x.grid, y5(x.grid) - y5(0) + mean(f.hat), type = "l", col = "black")
 #abline(v = ALE$x, lwd = .5)
+abline(v = partition(ALE$x[-51], ALE$ale, 5), lwd = 2)
+
 legend(0, 12, legend = c("f.hat", "ALE", "PD", "true"), fill = c("red", "blue", "green", "black"))
+
+

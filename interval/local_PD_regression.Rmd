@@ -171,7 +171,7 @@ x.grid.dist = diff(PD$x.grid)[1]
 y.hat.diffs = diff(PD$y.hat) / x.grid.dist
 
 plot(PD$x.grid, PD$y.hat, type = "l")
-abline(v = partition(PD$x.grid[-length(PD$x.grid)] + x.grid.dist/2, y.hat.diffs, 7))
+abline(v = partition(PD$x.grid[-length(PD$x.grid)] + x.grid.dist/2, y.hat.diffs, 5))
 
 # partition derivative
 PDeriv = computeWPD(nnet.mod$learner.model, dt, "x5", wp = 2, derivative = TRUE,
@@ -180,6 +180,12 @@ plotLPD(PDeriv)
 
 plot(PD$x.grid, PD$y.hat, type = "p", pch = ".")
 abline(v = partition(PDeriv$x.grid, PDeriv$y.hat, 7))
+
+# partition ALE
+ALE = computeALE(nnet.mod$learner.model, dt, "x5", K = 100)
+
+plot(PD$x.grid, PD$y.hat, type = "l")
+abline(v = partition(ALE$x[-101], ALE$ale, 10))
 
 ```
 
