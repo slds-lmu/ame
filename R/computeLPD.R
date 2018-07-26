@@ -38,10 +38,12 @@ computeLPD = function(model, data, feature, n = "default", l = "default", predic
     y.hat.1 = predict.fun(model, newdata = data[1,])
     if (is.matrix(y.hat.1) | is.data.frame(y.hat.1)) {
       y.hat = matrix(nrow = n, ncol = ncol(y.hat.1))
-      colnames(y.hat) = colnames(y.hat.1)
+      classes = colnames(y.hat.1)
+      colnames(y.hat) = classes
     } else {
       y.hat = matrix(nrow = n, ncol = length(y.hat.1))
-      colnames(y.hat) = names(y.hat)
+      classes = names(y.hat.1)
+      colnames(y.hat) = classes
     }
   } else y.hat = numeric(n)
 
@@ -52,7 +54,17 @@ computeLPD = function(model, data, feature, n = "default", l = "default", predic
     local.data = data[local.indices, ]
     local.data[, feature] = x.grid[i]
     if (derivative) {
-      y.hat[i] = mean(derivative(local.data[, feature], feature, local.data, model))
+      if (multiclass) {
+        for (class in classes) {
+          y.hat[i, class] = mean(derivative(local.data[, feature], feature, local.data, model,
+            predict.fun = function(object, newdata) as.numeric(predict(object, newdata)[, class])))
+        }
+      } else {
+        #y.hat[i] = weighted.mean(derivative(data[, feature], feature, data, model,
+        #  predict.fun = predict.fun), weights)
+        y.hat[i] = mean(derivative(local.data[, feature], feature, local.data, model,
+          predict.fun = predict.fun))
+      }
     } else {
       if (multiclass) y.hat[i,] = colMeans(predict.fun(model, newdata = local.data))
       else y.hat[i] = mean(predict.fun(model, newdata = local.data))

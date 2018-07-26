@@ -38,10 +38,12 @@ computeWPD = function(model, data, feature, n = "default", l = "default", wp = 4
     y.hat.1 = predict.fun(model, newdata = data[1,])
     if (is.matrix(y.hat.1) | is.data.frame(y.hat.1)) {
       y.hat = matrix(nrow = n, ncol = ncol(y.hat.1))
-      colnames(y.hat) = colnames(y.hat.1)
+      classes = colnames(y.hat.1)
+      colnames(y.hat) = classes
     } else {
-      y.hat = matrix(nrow = n, ncol = length(y.hat.1))
-      colnames(y.hat) = names(y.hat)
+      y.hat = as.data.frame(matrix(nrow = n, ncol = length(y.hat.1)))
+      classes = names(y.hat.1)
+      colnames(y.hat) = classes
     }
   } else y.hat = numeric(n)
 
@@ -50,7 +52,15 @@ computeWPD = function(model, data, feature, n = "default", l = "default", wp = 4
     weights = (1 - normalize(distances))^wp
     data[, feature] = x.grid[i]
     if (derivative) {
-      y.hat[i] = weighted.mean(derivative(data[, feature], feature, data, model), weights)
+      if (multiclass) {
+        for (class in classes) {
+          y.hat[i, class] = weighted.mean(derivative(data[, feature], feature, data, model,
+            predict.fun = function(object, newdata) as.numeric(predict(object, newdata)[, class])), weights)
+        }
+      } else {
+        y.hat[i] = weighted.mean(derivative(data[, feature], feature, data, model,
+          predict.fun = predict.fun), weights)
+      }
     } else {
       if (multiclass) y.hat[i,] = apply(predict.fun(model, newdata = data), 2, weighted.mean, weights)
       else y.hat[i] = weighted.mean(predict.fun(model, newdata = data), weights)

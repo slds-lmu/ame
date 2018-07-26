@@ -50,12 +50,16 @@ marginalPrediction(iris, feature, n = n, model = nnet.mod$learner.model, int.poi
 
 # Petal.Width:
 LPD.petwid = computeLPD(nnet.mod$learner.model, iris, "Petal.Width", n = 10, multiclass = TRUE)
-ggplot(data = LPD.petwid$plot.data, aes(x = x, y = probability, group = class, col = class)) +
-  geom_line() + geom_point()
-plotPartialDependence(generatePartialDependenceData(nnet.mod, iris.task, features = "Petal.Width", n = 10))
+plotLPD(LPD.petwid)
+plotPartialDependence(generatePartialDependenceData(nnet.mod, iris.task, features = "Petal.Width", n = 20))
 
-WPD.petwid = computeWPD(nnet.mod$learner.model, iris, "Petal.Width", n = 10, multiclass = TRUE)
-plotLPD(WPD.petwid)
+plotLPD(computeWPD(nnet.mod$learner.model, iris, "Petal.Width", n = 20, multiclass = TRUE))
+
+#derivative
+plotPartialDependence(generatePartialDependenceData(nnet.mod, iris.task, features = "Petal.Width", n = 20,
+  derivative = TRUE))
+plotLPD(computeLPD(nnet.mod$learner.model, iris, "Petal.Width", n = 200, l = 20, multiclass = TRUE, derivative = TRUE))
+plotLPD(computeWPD(nnet.mod$learner.model, iris, "Petal.Width", n = 200, multiclass = TRUE, derivative = TRUE))
 
 # Petal.Length:
 LPD.petlen = computeLPD(nnet.mod$learner.model, iris, "Petal.Length", n = 40, multiclass = TRUE)
