@@ -68,10 +68,15 @@ computeALE = function(model, data, feature, K, predict.fun = predict, multiclass
     ale = delta/diff(z)
     ale.plot.data = data.frame(x = z, f)
   }
-  return(list(x = z, f = f, K = K, i = interval.indices, ale = ale, ale.plot.data = ale.plot.data))
+  ale.x = z[-length(z)]
+  return(list(x = z, f = f, K = K, i = interval.indices, ale = ale, ale.x = ale.x, ale.plot.data = ale.plot.data,
+    feature = feature))
 }
 
 #plot(x, fJ, type = "l", xlab = paste("x_", J, " (",
 #  names(X)[J], ")", sep = ""), ylab = paste("f_",
 #    J, "(x_", J, ")", sep = ""))
-
+plotALE = function(ALE) {
+  ggplot(data = ALE$ale.plot.data, aes(x = x, y = f)) + geom_line() + geom_point() +
+    xlab(ALE$feature)
+}

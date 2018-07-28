@@ -178,14 +178,16 @@ PDeriv = computeWPD(nnet.mod$learner.model, dt, "x5", wp = 2, derivative = TRUE,
   predict.fun = nnet.pred.fun)
 plotLPD(PDeriv)
 
-plot(PD$x.grid, PD$y.hat, type = "p", pch = ".")
+plot(PD$x.grid, PD$y.hat, type = "l")
 abline(v = partition(PDeriv$x.grid, PDeriv$y.hat, 7))
 
 # partition ALE
 ALE = computeALE(nnet.mod$learner.model, dt, "x5", K = 100)
 
 plot(PD$x.grid, PD$y.hat, type = "l")
-abline(v = partition(ALE$x[-101], ALE$ale, 10))
+plot(ALE$x, ALE$f, type = "l")
+abline(v = partition(ALE$x[-101], ALE$ale, 5), col = "red")
+abline(v = partition(ALE$x[-101], ALE$ale, 7, part.method = "cluster"))
 
 ```
 
