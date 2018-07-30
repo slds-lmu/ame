@@ -2,6 +2,9 @@ library(mlr)
 devtools::load_all()
 
 # dgp
+set.seed(4218)
+set.seed(123)
+set.seed(4321)
 n = 500
 x = runif(n, min = 0, max = 1)
 x1 = x + rnorm(n, 0, 0.05)
@@ -16,14 +19,22 @@ nnet.lrn = makeLearner("regr.nnet", skip = FALSE, size = 20, decay = 0.0001, max
   trace = FALSE)
 nnet.mod = train(nnet.lrn, tsk)
 
-ALE = computeALE(nnet.mod$learner.model, df, "x2", K = 100)
+ALE = computeALE(nnet.mod$learner.model, df, "x2", K = 50)
 plotALE(ALE)
 
 plotPrediction(nnet.mod, tsk, "x2")$plot
 
-
 # partition
-partition(ALE$ale.x, ALE$ale, 5)
+breaks = partition(ALE$ale.x, ALE$ale, 5)
 plotALE(ALE) + geom_vline(xintercept = partition(ALE$ale.x, ALE$ale, 5))
 plotALE(ALE) + geom_vline(xintercept = partition(ALE$ale.x, ALE$ale, 5, part.method = "cluster"))
 
+# compute AME given the intervals
+AME = computeAMEInterval(nnet.mod$learner.model, df, "x2", breaks)
+AME$AME
+plotAMEInterval(AME)
+
+# add break points "manually"
+AME = computeAMEInterval(nnet.mod$learner.model, df, "x2", c(0.1, breaks))
+AME$AME
+plotAMEInterval(AME)

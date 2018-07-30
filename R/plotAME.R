@@ -1,4 +1,4 @@
-#' Plot AME intervalls
+#' Plot AME
 #'
 #' @param object Model object
 #' @param data data.frame
@@ -34,3 +34,19 @@ plotAME = function(object, data, ame, target) {
     ggplot2::geom_line(mapping = aes(y = y.ame), col = "red") +
     ggplot2::facet_wrap(~ feature, scales = "free_x")
 }
+
+#' Plot AME intervals
+#'
+#' @export
+plotAMEInterval = function(AMEInterval) {
+  plot(AMEInterval$x, AMEInterval$y.hat, pch = 16, col = rgb(0,0,0,.2))
+  AME = AMEInterval$AME
+  x.0 = AMEInterval$x.median.interval
+  y.0 = AMEInterval$y.hat.mean
+  bounds = AMEInterval$bounds
+  for(i in 1:(length(bounds)-1)) {
+    lines(bounds[i:(i+1)], c(y.0[i] - (x.0[i] - bounds[i]) * AME[i],
+      y.0[i] + (bounds[i+1] - x.0[i]) * AME[i]), col = "green", lwd = 2)
+  }
+}
+
