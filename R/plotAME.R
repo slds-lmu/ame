@@ -41,7 +41,7 @@ plotAME = function(object, data, ame, target) {
 plotAMEInterval = function(AMEInterval) {
   plot(AMEInterval$x, AMEInterval$y.hat, pch = 16, col = rgb(0,0,0,.2))
   AME = AMEInterval$AME
-  x.0 = AMEInterval$x.median.interval
+  x.0 = AMEInterval$x.interval.average
   y.0 = AMEInterval$y.hat.mean
   bounds = AMEInterval$bounds
   for(i in 1:(length(bounds)-1)) {
