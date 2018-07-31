@@ -17,7 +17,7 @@ aggregateDerivative = function(x, feature, data, model,
     # effect = effect[effect != 0]
     # FIXME: make reflev changable from outside
     reflev = levels(x)[1]
-    effect = vnapply(effect, aggregate.fun) # when is there something to aggregate?
+    effect = vnapply(effect, aggregate.fun)
     effect = effect[names(effect) != reflev] - effect[names(effect) == reflev]
     return(setNames(effect, paste0(feature, names(effect))))
   } else if (is.character(x)) {
