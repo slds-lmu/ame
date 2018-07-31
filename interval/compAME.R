@@ -31,15 +31,10 @@
 #' }
 #'
 #' @return AME
-#'
-#' @examples 4 + 4
-#'
-#' @export
 compAME = function(object, ...) {
   UseMethod("compAME", object = object)
 }
 
-#' @export
 compAME.default = function(object, data, features, predict.fun = NULL, individual = FALSE,
     delta = NULL, parallel = FALSE, ...) {
   assertDataFrame(data)
@@ -72,8 +67,6 @@ compAME.default = function(object, data, features, predict.fun = NULL, individua
 }
 
 #' WrappedModel class from mlr package
-#'
-#' @export
 compAME.WrappedModel = function(object, task, features, delta = NULL, parallel = FALSE,...) {
   assertClass(task, classes = "Task")
   data = mlr::getTaskData(task)
