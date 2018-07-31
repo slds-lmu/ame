@@ -4,8 +4,8 @@
 \alias{derivative}
 \title{Computes the derivative of a feature}
 \usage{
-derivative(x, feature, data, model, predict.fun = function(object, newdata)
-  predict(object, newdata = newdata), ...)
+derivative(x, feature, data, model, predict.fun = function(object,
+  newdata) predict(object, newdata = newdata), ...)
 }
 \arguments{
 \item{x}{[\code{vector}]\cr

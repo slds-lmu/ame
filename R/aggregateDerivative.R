@@ -20,5 +20,12 @@ aggregateDerivative = function(x, feature, data, model,
     effect = vnapply(effect, aggregate.fun)
     effect = effect[names(effect) != reflev] - effect[names(effect) == reflev]
     return(setNames(effect, paste0(feature, names(effect))))
+  } else if (is.character(x)) {
+    reflev = sort(unique(x))[1]
+    effect = unlist(effect)
+    effect = effect[names(effect) != reflev] - effect[names(effect) == reflev]
+    return(setNames(effect, paste0(feature, names(effect))))
+  } else if (is.logical(x)) {
+    return(setNames(effect[["TRUE"]] - effect[["FALSE"]], paste0(feature, "TRUE")))
   }
 }
