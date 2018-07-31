@@ -90,9 +90,9 @@ gbm.mod = train(gbm.lrn, tsk)
 
 ```{r,fig.width=9}
 gridExtra::grid.arrange(
-  plotLPD(computeLPD(lm.mod$learner.model, dt, "x1")) + ggtitle("LPD, l=20"),
+  plotPD(computePD(lm.mod$learner.model, dt, "x1", l = 20)) + ggtitle("LPD, l=20"),
     #scale_y_continuous(limits = c(-10,12)),
-  plotLPD(computeLPD(lm.mod$learner.model, dt, "x1", l = 200)) + ggtitle("LPD, l = 200"),
+  plotPD(computePD(lm.mod$learner.model, dt, "x1", l = 200)) + ggtitle("LPD, l = 200"),
   plotPartialDependence(generatePartialDependenceData(lm.mod, tsk, "x1", n = 30,
   individual = FALSE, derivative = FALSE)) + ggtitle("PD"),
 ncol = 3)
@@ -104,10 +104,10 @@ For *l = nrow(data)* LPD equals PD.
 ```{r}
 l = 20
 gridExtra::grid.arrange(
-  plotLPD(computeLPD(lm.mod$learner.model, dt, "x2", l = l)),
-  plotLPD(computeLPD(lm.mod$learner.model, dt, "x3", l = l)),
-  plotLPD(computeLPD(lm.mod$learner.model, dt, "x4", l = l)),
-  plotLPD(computeLPD(lm.mod$learner.model, dt, "x5", l = l)),
+  plotPD(computePD(lm.mod$learner.model, dt, "x2", l = l)),
+  plotPD(computePD(lm.mod$learner.model, dt, "x3", l = l)),
+  plotPD(computePD(lm.mod$learner.model, dt, "x4", l = l)),
+  plotPD(computePD(lm.mod$learner.model, dt, "x5", l = l)),
   ncol = 2)
 
 ```
@@ -115,7 +115,7 @@ gridExtra::grid.arrange(
 ## Derivative linear model
 
 ```{r}
-computeLPD(lm.mod$learner.model, dt, "x2", derivative = TRUE)$y.hat
+computePD(lm.mod$learner.model, dt, "x2", derivative = TRUE)$y.hat
 ```
 
 Derivative "works" (returns same value for each grid point).
@@ -125,24 +125,24 @@ Derivative "works" (returns same value for each grid point).
 
 ```{r}
 par(mfrow = c(1,1))
-plotLPD(computeLPD(nnet.mod$learner.model, dt, "x5"))
-plotLPD(computeWPD(nnet.mod$learner.model, dt, "x5", wp = 2))
-plotLPD(computeWPD(nnet.mod$learner.model, dt, "x5", wp = 0)) # wp=0 --> non-weighted partial dependence
+plotPD(computePD(nnet.mod$learner.model, dt, "x5", l = 20, n = 50))
+plotPD(computePD(nnet.mod$learner.model, dt, "x5", wp = 2, n = 50))
+plotPD(computePD(nnet.mod$learner.model, dt, "x5", n = 100)) # wp=0 --> partial dependence
 plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x5", n = 100, individual = FALSE))
 plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x5", n = 10, individual = TRUE))
 
-plotLPD(computeLPD(nnet.mod$learner.model, dt, "x4"))
-plotLPD(computeWPD(nnet.mod$learner.model, dt, "x4", wp = 1))
+plotPD(computePD(nnet.mod$learner.model, dt, "x4", l = 20))
+plotPD(computePD(nnet.mod$learner.model, dt, "x4", wp = 1, n = 20))
 plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x4", n = 100, individual = FALSE))
 plot(seq(-.1, 1, .05), y4(seq(-.1, 1, .05)), type = "l")
 
-plotLPD(computeLPD(nnet.mod$learner.model, dt, "x2"))
-plotLPD(computeWPD(nnet.mod$learner.model, dt, "x2", wp = 1))
+plotPD(computePD(nnet.mod$learner.model, dt, "x2", l = 20, n = 50))
+plotPD(computePD(nnet.mod$learner.model, dt, "x2", wp = 1))
 plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x2", n = 20, individual = FALSE))
 plot(seq(0, 1, .05), y2(seq(0, 1, .05)), type = "l")
 
-plotLPD(computeLPD(nnet.mod$learner.model, dt, "x1"))
-plotLPD(computeWPD(nnet.mod$learner.model, dt, "x1"))
+plotPD(computePD(nnet.mod$learner.model, dt, "x1", l = 20, n = 50))
+plotPD(computePD(nnet.mod$learner.model, dt, "x1", wp = 4))
 plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x1", n = 100, individual = FALSE))
 plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x1", n = 10, individual = TRUE))
 plot(seq(0, 1, .05), y1(seq(0, 1, .05)), type = "l")
@@ -155,7 +155,7 @@ nnet.pred.fun = function(object, newdata) predict(object, newdata)
 gridExtra::grid.arrange(
   plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x5", n = 50, derivative = TRUE)) +
     scale_y_continuous(limits = c(-45,35)) + ggtitle("Partial Deriv"),
-  plotLPD(computeLPD(nnet.mod$learner.model, dt, "x5", n = 50, derivative = TRUE,
+  plotPD(computePD(nnet.mod$learner.model, dt, "x5", n = 50, l = 20, derivative = TRUE,
     predict.fun = nnet.pred.fun)) +
     scale_y_continuous(limits = c(-45,35)) + ggtitle("Local Partial Deriv"),
   ncol = 2)
@@ -165,8 +165,8 @@ gridExtra::grid.arrange(
 
 ```{r}
 # partition differences
-PD = computeWPD(nnet.mod$learner.model, dt, "x5", wp = 2)
-plotLPD(PD)
+PD = computePD(nnet.mod$learner.model, dt, "x5", wp = 2)
+plotPD(PD)
 x.grid.dist = diff(PD$x.grid)[1]
 y.hat.diffs = diff(PD$y.hat) / x.grid.dist
 
@@ -174,7 +174,7 @@ plot(PD$x.grid, PD$y.hat, type = "l")
 abline(v = partition(PD$x.grid[-length(PD$x.grid)] + x.grid.dist/2, y.hat.diffs, 5))
 
 # partition derivative
-PDeriv = computeWPD(nnet.mod$learner.model, dt, "x5", wp = 2, derivative = TRUE,
+PDeriv = computePD(nnet.mod$learner.model, dt, "x5", wp = 2, derivative = TRUE,
   predict.fun = nnet.pred.fun)
 plotLPD(PDeriv)
 
@@ -195,17 +195,17 @@ abline(v = partition(ALE$x[-101], ALE$ale, 7, part.method = "cluster"))
 
 ```{r}
 gbm.pred.fun = function(object, newdata) predict(object, newdata, n.trees = 10000)
-plotLPD(computeLPD(gbm.mod$learner.model, dt, "x5", predict.fun = gbm.pred.fun))
-plotLPD(computeWPD(gbm.mod$learner.model, dt, "x5", wp = 1, predict.fun = gbm.pred.fun))
-plotLPD(computeWPD(gbm.mod$learner.model, dt, "x5", wp = 0, predict.fun = gbm.pred.fun))
-plotPartialDependence(generatePartialDependenceData(gbm.mod, tsk, "x5", n = 100, individual = FALSE))
+plotPD(computePD(gbm.mod$learner.model, dt, "x5", l = 20, predict.fun = gbm.pred.fun))
+plotPD(computePD(gbm.mod$learner.model, dt, "x5", wp = 1, predict.fun = gbm.pred.fun))
+plotPD(computePD(gbm.mod$learner.model, dt, "x5", wp = 0, predict.fun = gbm.pred.fun))
+plotPartialDependence(generatePartialDependenceData(gbm.mod, tsk, "x5", n = 40, individual = FALSE))
 plotPartialDependence(generatePartialDependenceData(gbm.mod, tsk, "x5", n = 10, individual = TRUE))
 ```
 
 ## Derivative
 
 ```{r}
-computeLPD(gbm.mod$learner.model, dt, "x5", predict.fun = gbm.pred.fun, derivative = TRUE)$y.hat
+computePD(gbm.mod$learner.model, dt, "x5", l = 20, predict.fun = gbm.pred.fun, derivative = TRUE)$y.hat
 
 gbm.Pderiv = generatePartialDependenceData(gbm.mod, tsk, "x5", n = 100, derivative = TRUE)
 gbm.Pderiv$data$y
@@ -217,7 +217,7 @@ Derivatives for Gradient Boosting always zero.
 
 ```{r}
 # LPD
-PD = computeLPD(gbm.mod$learner.model, dt, "x5", predict.fun = gbm.pred.fun)
+PD = computePD(gbm.mod$learner.model, dt, "x5", l = 20, predict.fun = gbm.pred.fun)
 plotLPD(PD)
 x.grid.dist = diff(PD$x.grid)[1]
 y.hat.diffs = diff(PD$y.hat) / x.grid.dist
@@ -230,7 +230,7 @@ plotPartialDependence(PD)
 x.grid.dist = diff(PD$data$x5)[1]
 y.hat.diffs = diff(PD$data$y) / x.grid.dist
 plot(PD$data$x5, PD$data$y, type = "l")
-abline(v = partition(PD$data$x5[-length(PD$data$x5)] + x.grid.dist/2, y.hat.diffs, 10))
+abline(v = partition(PD$data$x5[-length(PD$data$x5)] + x.grid.dist/2, y.hat.diffs, 5))
 
 ```
 

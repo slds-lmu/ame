@@ -130,32 +130,32 @@ Calculate Partial Dependence only with points nearby.
 ## LPD nnet
 
 ```{r lpd-nnet,fig.height=3,fig.width=5}
-LPD.petwid = computeLPD(nnet.mod$learner.model, iris, "Petal.Width", n = 20, multiclass = TRUE)
-plotLPD(LPD.petwid)
-LPD.petlen = computeLPD(nnet.mod$learner.model, iris, "Petal.Length", n = 20, multiclass = TRUE)
-plotLPD(LPD.petlen)
+LPD.petwid = computePD(nnet.mod$learner.model, iris, "Petal.Width", n = 20, l = 15, multiclass = TRUE)
+plotPD(LPD.petwid)
+LPD.petlen = computePD(nnet.mod$learner.model, iris, "Petal.Length", n = 20, l = 15, multiclass = TRUE)
+plotPD(LPD.petlen)
 ```
 
 ## LPD gbm
 
 ```{r lpd-gbm,fig.height=3,fig.width=5}
 # Petal.Width:
-gbm.LPD.petwid = computeLPD(gbm.mod$learner.model, iris, "Petal.Width", n = 20, multiclass = TRUE,
+gbm.LPD.petwid = computePD(gbm.mod$learner.model, iris, "Petal.Width", n = 20, l = 15, multiclass = TRUE,
   predict.fun = function(object, newdata) predict(object, newdata, type = "response", n.trees = 1000)[, , 1])
-plotLPD(gbm.LPD.petwid)
+plotPD(gbm.LPD.petwid)
 
 # Petal.Length:
-gbm.LPD.petlen = computeLPD(gbm.mod$learner.model, iris, "Petal.Length", n = 20, multiclass = TRUE,
+gbm.LPD.petlen = computePD(gbm.mod$learner.model, iris, "Petal.Length", n = 20, l = 15, multiclass = TRUE,
   predict.fun = function(object, newdata) predict(object, newdata, type = "response", n.trees = 1000)[, , 1])
-plotLPD(gbm.LPD.petlen)
+plotPD(gbm.LPD.petlen)
 ```
 
 ## LPD SVM
 
 ```{r lpd-svm,fig.height=3,fig.width=5}
-svm.LPD.petwid = computeLPD(svm.mod$learner.model, iris, "Petal.Width", n = 20, multiclass = TRUE,
+svm.LPD.petwid = computePD(svm.mod$learner.model, iris, "Petal.Width", n = 20, l = 15, multiclass = TRUE,
   predict.fun = function(object, newdata) attributes(predict(object, newdata, probability = TRUE))[["probabilities"]])
-plotLPD(svm.LPD.petwid)
+plotPD(svm.LPD.petwid)
 ```
 
 All LPD plots show a similar picture regardless of the fitting method.
@@ -188,21 +188,21 @@ ggplot(data = svm.predict.data, aes(x = Petal.Width, y = probability, group = cl
 classes = as.character(unique(svm.predict.data$class))
 
 nnet.loess = vapply(classes, function(class) predict(loess(probability ~ Petal.Width,
-  nnet.predict.data[nnet.predict.data$class == class,])), FUN.VALUE = numeric(150))
+  nnet.predict.data[nnet.predict.data$class == class,], span = .4)), FUN.VALUE = numeric(150))
 nnet.loess.data = nnet.predict.data
 nnet.loess.data$probability = as.numeric(nnet.loess)
 ggplot(data = nnet.loess.data, aes(x = Petal.Width, y = probability, group = class, col = class)) +
   geom_point() + geom_line() + ggtitle("LOESS nnet")
 
 gbm.loess = vapply(classes, function(class) predict(loess(probability ~ Petal.Width,
-  gbm.predict.data[gbm.predict.data$class == class,])), FUN.VALUE = numeric(150))
+  gbm.predict.data[gbm.predict.data$class == class,], span = .4)), FUN.VALUE = numeric(150))
 gbm.loess.data = gbm.predict.data
 gbm.loess.data$probability = as.numeric(gbm.loess)
 ggplot(data = gbm.loess.data, aes(x = Petal.Width, y = probability, group = class, col = class)) +
   geom_point() + geom_line() + ggtitle("LOESS gbm")
 
 svm.loess = vapply(classes, function(class) predict(loess(probability ~ Petal.Width,
-  svm.predict.data[svm.predict.data$class == class,])), FUN.VALUE = numeric(150))
+  svm.predict.data[svm.predict.data$class == class,], span = .4)), FUN.VALUE = numeric(150))
 svm.loess.data = svm.predict.data
 svm.loess.data$probability = as.numeric(svm.loess)
 ggplot(data = svm.loess.data, aes(x = Petal.Width, y = probability, group = class, col = class)) +
