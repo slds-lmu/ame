@@ -1,2 +1,2 @@
-#' @param data [\code{logical(1)}]\cr
+#' @param data [\code{data.frame}]\cr
 #'   The data set that was used to fit the model.

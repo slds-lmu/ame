@@ -1,9 +1,10 @@
 #' Compute AME given break points on the sample space of a feature
 #'
-#' @param model
-#' @param data
-#' @param feature
-#' @param breaks
+#' @template arg_model
+#' @template arg_data
+#' @param feature [\code{character(1)}]\cr
+#'   Feature name, subset of \code{colnames(data)}.
+#' @param breaks [\code{numeric}]
 #'
 #' @return
 #' @export

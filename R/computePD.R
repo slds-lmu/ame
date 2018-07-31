@@ -8,17 +8,19 @@
 #'   \item factor features?
 #' }
 #'
-#' @param model Fitted model object
-#' @param data (data.frame) Data used to fit the model
-#' @param feature (character) Feature name, subset of data
-#' @param n=nrow(data)/5 (integer) Grid size
-#' @param l=nrow(data) (integer) Number of points that are defined as local to a grid point
-#' @param wp=0 Defines the weights that are based on the distance from the grid point.
-#'     Higher wp means more weight on nearby observations.
-#'     wp=0: all weights equal 1 (standard partial dependence).
-#' @param predict.fun (function) Prediciton function
-#' @param multiclass=FALSE (logical)
-#' @param derivative=FALSE (logical)
+#' @template arg_model
+#' @template arg_data
+#' @param feature [\code{character(1)}]\cr
+#'   Feature name, subset of \code{colnames(data)}.
+#' @param n=nrow(data)/5 [\code{integer}]\cr Grid size
+#' @param l=nrow(data) [\code{integer}]\cr Number of points that are defined as local to a grid point
+#' @param wp=0 [\code{numeric}]\cr
+#'   Defines the weights that are based on the distance from the grid point.
+#'   Higher wp means more weight on nearby observations.
+#'   wp=0: all weights equal 1 (standard partial dependence).
+#' @template arg_predict.fun
+#' @param multiclass=FALSE [\code{logical}]
+#' @param derivative=FALSE [\code{logical}]
 #'
 #' @return
 #' @export

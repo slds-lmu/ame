@@ -2,14 +2,37 @@
 #'
 #' Computes the average marginal effects for specified features.
 #'
+#' @section Categorical features:
+#'
+#' Supported classes are \code{factor}, \code{logical}, \code{character} (also depends on the model function).
+#' First level is chosen as reference category.
+#'
+#' @section Custom prediction function:
+#'
+#' If you are using mlr model objects you do not have to provide a prediciton function.
+#'
+#' If you are using a model from an arbitrary R package, you have to make sure that the predict method
+#' is in the form \code{predict(object, newdata = newdata)} and returns a numeric value. Furthermore:
+#'
+#' Regression tasks: provide predict.fun if the model needs specific arguments,
+#'   e.g. gbm needs the argument \code{n.trees}.
+#'
+#' Classification tasks: you have to make sure that the prediction function of the model returns
+#'   probabilities, e.g.:
+#' \itemize{
+#'   \item glm: predict.fun = function(object, newdata) predict(object, newdata = newdata, type = "response")
+#'   \item gbm: predict.fun = function(object, newdata) predict(object, newdata = newdata,
+#'   n.trees = 1000, type = "response")
+#' }
+#'
 #' @template arg_model
 #' @template arg_data
-#' @param features [\code{logical(1)}]\cr
+#' @param features [\code{character}]\cr
 #'   The features for which the average marginal effects should be computed.
 #' @param at [\code{list}]\cr
 #'   (optional) A named list of vectors where the values specify at which points the marginal effects are calculated (i.e. the values are held constant).
 #' @template arg_predict.fun
-#' @param ...
+#' @param ... Passes arguments on to \link[numDeriv]{grad}.
 #'   Further options passed down to the \code{\link[numDeriv]{grad}} function.
 #'
 #' @export

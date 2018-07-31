@@ -10,9 +10,10 @@
 #'   \item second-order effects
 #' }
 #'
-#' @param data a data.frame
-#' @param model a model object
-#' @param feature name(s) of the feature(s) of interest
+#' @template arg_model
+#' @template arg_data
+#' @param feature [\code{character(1)}]\cr
+#'   Feature name, subset of \code{colnames(data)}.
 #' @param K number of intervals
 #'
 #' @return
