@@ -5,18 +5,14 @@
 #'
 #' @section TODO:
 #' \itemize{
-#'   \item loess smoothing
-#'   \item implement mlr models
 #'   \item support multiple features at once
 #' }
 #'
-#'
 #' @param model
-#' @param data / task
+#' @param data/task
 #' @param feature
-#' @
 #'
-#' @return
+#' @return \code{ggplot}
 #' @export
 #'
 #' @examples

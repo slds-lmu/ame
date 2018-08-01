@@ -80,9 +80,13 @@ computeALE = function(model, data, feature, K = "default", predict.fun = predict
     feature = feature))
 }
 
-#plot(x, fJ, type = "l", xlab = paste("x_", J, " (",
-#  names(X)[J], ")", sep = ""), ylab = paste("f_",
-#    J, "(x_", J, ")", sep = ""))
+
+#' Create ALE Plot
+#'
+#' @param ALE object created by \code{\link{computeALE}}
+#'
+#' @return \code{ggplot}
+#' @export
 plotALE = function(ALE) {
   ggplot(data = ALE$ale.plot.data, aes(x = x, y = f)) + geom_line() + geom_point() +
     xlab(ALE$feature)

@@ -92,9 +92,9 @@ computePD = function(model, data, feature, n = "default", l = "default", wp = 0,
 
 #' Plot partial dependence
 #'
-#' @param PD object created by computePD().
+#' @param PD object created by \code{\link{computePD}}
 #'
-#' @return
+#' @return \code{ggplot}
 #' @export
 plotPD = function(PD) {
   if (PD$multiclass) {
