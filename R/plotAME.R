@@ -39,14 +39,16 @@ plotAME = function(object, data, ame, target) {
 #'
 #' @export
 plotAMEInterval = function(AMEInterval) {
-  plot(AMEInterval$x, AMEInterval$y.hat, pch = 16, col = rgb(0,0,0,.2))
   AME = AMEInterval$AME
   x.0 = AMEInterval$x.interval.average
   y.0 = AMEInterval$y.hat.mean
   bounds = AMEInterval$bounds
+  p = ggplot() +
+    geom_point(mapping = aes(AMEInterval$x, AMEInterval$y.hat), pch = 16, alpha = .2)
   for(i in 1:(length(bounds)-1)) {
-    lines(bounds[i:(i+1)], c(y.0[i] - (x.0[i] - bounds[i]) * AME[i],
-      y.0[i] + (bounds[i+1] - x.0[i]) * AME[i]), col = "green", lwd = 2)
+    p = p + geom_line(mapping = aes_string(bounds[i:(i+1)], c(y.0[i] - (x.0[i] - bounds[i]) * AME[i],
+      y.0[i] + (bounds[i+1] - x.0[i]) * AME[i])), col = "green", inherit.aes = FALSE)
   }
+  return(p)
 }
 
