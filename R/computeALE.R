@@ -1,5 +1,7 @@
 #' Compute Local Accumulated Effects (ALE)
 #'
+#' Implementation of \href{https://arxiv.org/abs/1612.08468}{Apley (2016) Visualizing the Effects of Predictor Variables in Black Box Supervised Learning Models}
+#'
 #' @section TODO:
 #' \itemize{
 #'   \item implement mlr models
@@ -15,12 +17,16 @@
 #' @param feature [\code{character(1)}]\cr
 #'   Feature name, subset of \code{colnames(data)}.
 #' @param K number of intervals
+#' @template arg_predict.fun
+#' @param multiclass=FALSE
+#' @param minbucket Not yet implemented.
 #'
 #' @return
 #' @export
 #'
 #' @examples
-computeALE = function(model, data, feature, K, predict.fun = predict, multiclass = FALSE, minbucket = 5) {
+computeALE = function(model, data, feature, K = "default", predict.fun = predict, multiclass = FALSE, minbucket = 1) {
+  if (K == "default") K = nrow(data)/10
   x = data[, feature]
   if (K >= length(x)-1) {
     z = sort(x)

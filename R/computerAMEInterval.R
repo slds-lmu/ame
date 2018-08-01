@@ -10,7 +10,18 @@
 #' @export
 #'
 #' @examples
-computeAMEInterval = function(model, data, feature, breaks) {
+computeAMEInterval = function(model, data, feature, n.parts = 5, method = "ALE", breaks = NULL, ...) {
+
+  if (is.null(breaks)) {
+    if (method == "ALE") {
+      ALE = computeALE(model, data, feature, ...)
+      breaks = partition(ALE$ale.x, ALE$ale, n.parts)
+    } else if (method == "PDeriv") {
+      PD = computePD(model = model, data = data, feature = feature, derivative = TRUE, ...)
+      breaks = partition(PD$x.grid, PD$y.hat, n.parts)
+    }
+  }
+
   x = data[, feature]
   y.hat = predict(model, newdata = data)
   bounds = unique(c(min(x), sort(breaks), max(x) + 0.00001))
@@ -31,6 +42,6 @@ computeAMEInterval = function(model, data, feature, breaks) {
   for (i in 1:(l-1)) {
     interval.desc[i] = paste0("[", bounds.rounded[i], ", ", bounds.rounded[i+1], ")")
   }
-  return(list(AME = setNames(AME, interval.desc), bounds = bounds,
+  return(list(AME = setNames(AME, interval.desc), bounds = bounds, breaks = breaks,
     y.hat.mean = y.hat.mean, x.interval.average = x.interval.average, y.hat = y.hat, x = x))
 }
