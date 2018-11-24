@@ -24,7 +24,7 @@ computeAMEInternal.train = function(model, data, features,
 }
 
 computeAMEInternal.WrappedModel = function(model, data, features,
-  predict.fun = NULL, aggregate.fun = mean, cl = NULL, ...){
+  predict.fun = NULL, aggregate.fun = mean, cl = NULL, ...) {
   # FIXME: allow data to be also a mlr task
   # FIXME: support multiclass
   tt = mlr::getTaskType(model)

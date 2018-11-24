@@ -59,7 +59,28 @@ derivative.character = function(x, feature, data, model,
 
 # Modify feature in data set and predict using this modified data
 predictModifiedData = function(x, feature, data, model, predict.fun) {
+  if (is.numeric(data[[feature]])) {
+    prediction.modifdata = predictModifiedDataNumeric(
+      x, feature, data, model, predict.fun)
+  } else {
+    prediction.modifdata = predictModifiedDataFactor(
+      x, feature, data, model, predict.fun)
+  }
+  return(prediction.modifdata)
+}
+
+predictModifiedDataNumeric = function(x, feature, data, model, predict.fun) {
+  # modify data and return prediction in case of a numeric feature
   newdata = replace(data, list = which(colnames(data) == feature), values = x)
   p = predict.fun(model, newdata = newdata)
   if (length(x) == 1) mean(p) else p
+}
+
+predictModifiedDataFactor = function(x, feature, data, model, predict.fun) {
+  # modify data and return prediction in case of a factor feature
+  newdata = data
+  feature.levels = levels(data[[feature]])
+  newdata[[feature]] = factor(x = x, levels = feature.levels)
+  p = predict.fun(model, newdata = newdata)
+  return(p)
 }
