@@ -16,10 +16,10 @@
 computeAME = function(model, data, features, at = NULL, predict.fun = NULL, cl = NULL, ...) {
   if (testDataFrame(data, types = c("numeric", "factor")) == FALSE) {
     error.msg = paste(
-      "Data may only contain numeric and factor variables.",
+      "computeAME() only accepts numeric and factor variables.",
       "Please change the data types and refit the model.",
       sep = "\n")
-    stop(error.msg)
+    stop(error.msg, call. = FALSE)
   }
   assertSubset(features, colnames(data))
   assertList(at, types = "vector", null.ok = TRUE)
