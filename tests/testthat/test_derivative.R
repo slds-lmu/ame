@@ -7,8 +7,8 @@ test_that("check derivative", {
       predict(object, newdata = newdata, type = "response")
     deriv = derivative(margex[[feature]], margex.mod, data = margex,
                               feature = feature, predict.fun = predict.fun)
-    expect_error(expect_error(derivatives))
   })
+  expect_error(expect_error(derivatives))
 })
   # margex[[feat]] = as.character(margex[[feat]])
   # margex.mod = glm(margex.form, data = margex, family = binomial)
