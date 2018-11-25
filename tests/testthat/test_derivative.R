@@ -32,7 +32,6 @@ test_that("check derivative", {
   # deleted tests for logical features because function now only accepts
   # numeric and factor features
 
-})
 #
 # features = c("age")
 #
