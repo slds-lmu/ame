@@ -26,18 +26,29 @@ test_that("check computeAME for classification", {
     mod.mlr = mlr::train(lrn, task)
 
     for (at in at.list) {
-      predict.fun = function(object, newdata)
-        predict(object, newdata = newdata, type = "response")
-      ame = computeAME(mod, data = margex, cl = "1",
-        features = c("treatment", "age", "group"), at = at, predict.fun = predict.fun)
-      ame.caret = computeAME(mod.caret, data = margex, cl = "1",
-        features = c("treatment", "age", "group"), at = at)
+
+      predict.fun.glm = function(object, newdata) {
+        pred = predict(object, newdata = newdata, type = "response")}
+      predict.fun.caret = function(object, newdata) {
+        predict(object, newdata = newdata, type = "prob")[["1"]]}
+      ame = computeAME(mod, data = margex,
+        features = c("treatment", "age", "group"), at = at,
+        predict.fun = predict.fun.glm)
+      ame.caret = computeAME(mod.caret, data = margex,
+        features = c("treatment", "age", "group"), at = at,
+        predict.fun = predict.fun.caret)
       checkEqualToMargins(ame, ame.caret)
 
       # FIXME: remove if-condition this when mlr tasks are able to use formula interface
       if (i == 1) {
-        ame.mlr = computeAME(mod.mlr, data = margex, cl = "1",
-          features = c("treatment", "age", "group"), at = at)
+        predict.fun.mlr = function(object, newdata) {
+          predictions = predict(object, newdata = newdata)[["data"]]
+          return(predictions[["prob.1"]])
+        }
+        ame.mlr = computeAME(
+          mod.mlr, data = margex,
+          features = c("treatment", "age", "group"), at = at,
+          predict.fun = predict.fun.mlr)
         checkEqualToMargins(ame, ame.mlr)
       }
     }
