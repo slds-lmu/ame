@@ -18,7 +18,7 @@ computeAME = function(model, data, features, at = NULL, predict.fun = NULL, cl =
     error.msg = paste(
       "Data may only contain numeric and factor variables.",
       "Please change the data types and refit the model.",
-      sep="\n")
+      sep = "\n")
     stop(error.msg)
   }
   assertSubset(features, colnames(data))
