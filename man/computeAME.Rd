@@ -30,6 +30,15 @@ If \code{model} is of class \code{\link[mlr]{WrappedModel}}, the default tries t
 \code{\link[mlr]{getPredictionProbabilities}} or \code{\link[mlr]{getPredictionResponse}}
 depending on whether \code{model} is a classification or regression problem.}
 
+\item{cl}{(`character(1)`)\cr
+Class of learner in MLR. By convention, all classification learners
+start with \dQuote{classif.} all regression learners with
+\dQuote{regr.} all survival learners start with \dQuote{surv.}
+all clustering learners with \dQuote{cluster.} and all multilabel
+classification learners start with \dQuote{multilabel.}.
+A list of all integrated learners is available on the
+[learners] help page.}
+
 \item{...}{Further options passed down to the \code{\link[numDeriv]{grad}} function.}
 }
 \description{

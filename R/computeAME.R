@@ -1,7 +1,6 @@
 #' Compute Average Marginal Effects
 #'
 #' Computes the average marginal effects for specified features.
-#'
 #' @template arg_model
 #' @template arg_data
 #' @param features [\code{logical(1)}]\cr
@@ -9,6 +8,7 @@
 #' @param at [\code{list}]\cr
 #'   (optional) A named list of vectors where the values specify at which points the marginal effects are calculated (i.e. the values are held constant).
 #' @template arg_predict.fun
+#' @template arg_cl
 #' @param ...
 #'   Further options passed down to the \code{\link[numDeriv]{grad}} function.
 #'

@@ -1,7 +1,7 @@
 context("check derivative")
 
 test_that("check derivative", {
-  all.features = colnames(margex)[!colnames(margex) %in% "treatment"]
+  all.features = colnames(margex)[!colnames(margex) %in% "outcome"]
   derivatives = lapply(all.features, FUN = function(feature) {
     predict.fun = function(object, newdata)
       predict(object, newdata = newdata, type = "response")
