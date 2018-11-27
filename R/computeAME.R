@@ -1,7 +1,6 @@
 #' Compute Average Marginal Effects
 #'
 #' Computes the average marginal effects for specified features.
-#'
 #' @template arg_model
 #' @template arg_data
 #' @param features [\code{logical(1)}]\cr
@@ -9,12 +8,19 @@
 #' @param at [\code{list}]\cr
 #'   (optional) A named list of vectors where the values specify at which points the marginal effects are calculated (i.e. the values are held constant).
 #' @template arg_predict.fun
+#' @template arg_cl
 #' @param ...
 #'   Further options passed down to the \code{\link[numDeriv]{grad}} function.
 #'
 #' @export
 computeAME = function(model, data, features, at = NULL, predict.fun = NULL, cl = NULL, ...) {
-  assertDataFrame(data)
+  if (testDataFrame(data, types = c("numeric", "factor")) == FALSE) {
+    error.msg = paste(
+      "computeAME() only accepts numeric and factor variables.",
+      "Please change the data types and refit the model.",
+      sep = "\n")
+    stop(error.msg, call. = FALSE)
+  }
   assertSubset(features, colnames(data))
   assertList(at, types = "vector", null.ok = TRUE)
   assertFunction(predict.fun, args = c("object", "newdata"), null.ok = TRUE)
