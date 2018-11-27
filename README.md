@@ -1,7 +1,3 @@
-output:
-  github_document:
-    pandoc_args: --webtex
-
 # Average Marginal Effects
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
@@ -15,7 +11,8 @@ easily computed by numerically differentiating it at either observed or manually
 
 # Theory
 
-The Marginal Effect [ME] for numeric variables is the first derivative of a model $f(x_S, x_C)$ with respect to the selected feature $x_S$ at specified values of the covariates. $x_C$ represents all unselected features.
+<!The Marginal Effect [ME] for numeric variables is the first derivative of a model $f(x_S, x_C)$ with respect to the selected feature $x_S$ at specified values of the covariates. $x_C$ represents all unselected features.
+
 $$
 \begin{gather*}
 ME(x_S) = \frac{\partial f(x_S, x_C)}{\partial x_S}
@@ -33,8 +30,12 @@ $$
 $$
 
 The ME for factor features is estimated by comparing the change of $\hat{f}(x_S, x_C)$ compared to a base category while $x_C$ is held constant and $x_S$ is being replaced by a category other than the base category.
+>
 
-There are three kinds of Marginal Effects. The `ame` package supports all of them:
+
+The Marginal Effect [ME] for numeric variables is the first derivative of a model with respect to the selected feature at specified values of the covariates. It is estimated by numerically differentiating the fitted prediction function. The ME for factorial features is estimated for each category by comparing the change in prediction compared to a base category while all other variables are held constant.
+
+There are three kinds of Marginal Effects for numeric features. The `ame` package supports all of them:
 
 - Average Marginal Effects [AME]: The average slope of the prediction function at observed covariate values.
 - Marginal Effects at the Means [MEM]: The average slope of the prediction function while the unselected features $x_C$ are set to their sample means.
