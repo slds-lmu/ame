@@ -6,7 +6,8 @@
 [![Build Status](https://travis-ci.org/compstat-lmu/ame.svg?branch=master)](https://travis-ci.org/compstat-lmu/ame.svg?branch=master)
 [![codecov](https://codecov.io/gh/compstat-lmu/ame/branch/master/graph/badge.svg)](https://codecov.io/gh/compstat-lmu/ame)
 
-
+Marginal Effects represent marginal rates of change of a prediction function at specified covariate values. ME's are an intuitive way of describing the shape of a prediction function and
+easily computed by numerically differentiating it at either observed or manually set values of the feature space. 'ame' is the first software package written in R to implement Marginal Effects for any prediction model.
 
 # Installation of the package
 
