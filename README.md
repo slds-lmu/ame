@@ -7,7 +7,7 @@
 [![codecov](https://codecov.io/gh/compstat-lmu/ame/branch/master/graph/badge.svg)](https://codecov.io/gh/compstat-lmu/ame)
 
 Marginal Effects represent marginal rates of change of a prediction function at specified covariate values. They're an intuitive way of describing the slope of a prediction function and
-easily computed by numerically differentiating it at either observed or manually set values of the feature space. `ame` is the first software package written in R to implement Marginal Effects for any kind of prediction model.
+easily computed by numerically differentiating it at either observed or manually chosen values of the feature space. `ame` is the first software package written in R to implement Marginal Effects for any kind of prediction model.
 
 # Theory
 
@@ -39,7 +39,7 @@ There are three kinds of Marginal Effects for numeric features. The `ame` packag
 
 - Average Marginal Effects [AME]: The average slope of the prediction function at observed covariate values.
 - Marginal Effects at the Means [MEM]: The average slope of the prediction function while the values of unselected features are set to their sample means.
-- Marginal Effects at Representative Values [MER]: The slope of the prediction function while one or unselected feature(s) is/are set to manually specified values.
+- Marginal Effects at Representative Values [MER]: The slope of the prediction function while other features are set to manually specified values.
 
 # Installation of the package
 
@@ -116,5 +116,38 @@ computeAME(mod.mlr, data = iris, features = "Petal.Width",
            predict.fun = predict.fun.mlr)
 ```
 
+The AME can also be disaggregated by passing a different aggregation function to
+`computeAME()`:
 
+```r
+computeAME(mod.mlr, data = iris, features = "Petal.Width",
+           predict.fun = predict.fun.mlr, aggregate.fun = identity)
+```
 
+Other features can be fixed at specified values, which results in MER's.
+They can be regarded as conditional ME's:
+
+```r
+at = list("rm" = c(3, 4, 5, 6, 7, 8))
+computeAME(mod.caret, "age", data = df, aggregate.fun = mean, at = at)
+```
+
+By setting a factorial feature to different values we can look at counterfactuals:
+
+```r
+at = list("chas" = "0")
+computeAME(mod.caret, "age", data = df, aggregate.fun = mean, at = at)
+```
+
+Computation of MEM's is possible, although not recommended. The sample means 
+might not be representative of the population means:
+
+```
+feature.list = colnames(df)[!colnames(df) %in% c("chas", "medv")]
+sample.means = lapply(feature.list, FUN = function(feature) {
+  mean(df[, feature])
+})
+names(sample.means) = feature.list
+
+computeAME(mod.caret, "age", data = df, aggregate.fun = mean, at = sample.means)
+```
