@@ -38,8 +38,8 @@ The Marginal Effect [ME] for numeric variables is the first derivative of a mode
 There are three kinds of Marginal Effects for numeric features. The `ame` package supports all of them:
 
 - Average Marginal Effects [AME]: The average slope of the prediction function at observed covariate values.
-- Marginal Effects at the Means [MEM]: The average slope of the prediction function while the unselected features x_C are set to their sample means.
-- Marginal Effects at Representative Values [MER]: The slope of the prediction function while one or multiple features in $x_C$ is/are set to manually specified values.
+- Marginal Effects at the Means [MEM]: The average slope of the prediction function while the values of unselected features are set to their sample means.
+- Marginal Effects at Representative Values [MER]: The slope of the prediction function while one or unselected feature(s) is/are set to manually specified values.
 
 # Installation of the package
 
@@ -50,7 +50,7 @@ devtools::install_github("compstat-lmu/ame")
 ```
 # Using the package
 
-For regression targets the computation of AME's is straightforward:
+We start with the computation of AME's. For regression targets the computation of AME's is straightforward:
 
 ```r
 library(mlr)
