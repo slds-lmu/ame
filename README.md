@@ -38,7 +38,7 @@ The Marginal Effect [ME] for numeric variables is the first derivative of a mode
 There are three kinds of Marginal Effects for numeric features. The `ame` package supports all of them:
 
 - Average Marginal Effects [AME]: The average slope of the prediction function at observed covariate values.
-- Marginal Effects at the Means [MEM]: The average slope of the prediction function while the unselected features $x_C$ are set to their sample means.
+- Marginal Effects at the Means [MEM]: The average slope of the prediction function while the unselected features x_C are set to their sample means.
 - Marginal Effects at Representative Values [MER]: The slope of the prediction function while one or multiple features in $x_C$ is/are set to manually specified values.
 
 # Installation of the package
@@ -55,12 +55,18 @@ For regression targets the computation of AME's is straightforward:
 ```r
 library(mlr)
 library(ame)
+library(e1071)
 df = getTaskData(bh.task)
-mod = train("regr.svm", bh.task)
+
+mod.svm = e1071::svm(medv ~ . , data = df, kernel = "radial")
+computeAME(mod.svm, "age", data = df)
+
+lrn = makeLearner("regr.svm", par.vals = list(kernel = "radial"))
+mod.mlr = mlr::train(lrn, bh.task)
 computeAME(mod, "age", data = df)
 
-mod.glm = glm(medv ~ . , family = Gamma, data = df)
-computeAME(mod, "age", data = df)
+mod.caret = caret::train(medv ~ . , data = df, "svmRadial")
+computeAME(mod.caret, "age", data = df)
 ```
 
 For classification tasks, the classification probabilites for a specified target class are differentiated. Providing the right prediction function is essential in order to receive the correct results. The prediction function is a function argument of `computeAME()` and needs to be chosen depending on the underlying model. We highly encourage to test the prediction functions in advance. A prediction function consists of the following structure and has a fitted model and a data frame as arguments:
