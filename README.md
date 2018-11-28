@@ -77,7 +77,7 @@ pred.fun = function(object, newdata) {
 }
 ```
 
-We provide an example of a multinomial model, fitted on the iris dataset with the `multinom` function of the `nnet` package, as well as `mlr` and `caret`. We're interested in the Average Marginal Effect of `Petal.Width` on the probability of classifying an instance as `Virginica`. The prediction functions are set up such that they return the probabilites of classifying an instance as `Virginica`:
+We provide an example of a multinomial model, fitted on the iris dataset with the `multinom` function of the `nnet` package, as well as with `mlr` and `caret`. We're interested in the Average Marginal Effect of `Petal.Width` on the probability of classifying an instance as `Virginica`. The prediction functions are set up such that they return the probabilites of classifying an instance as `Virginica`:
 
 ```r
 library(mlr)
