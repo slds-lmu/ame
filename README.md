@@ -35,7 +35,7 @@ The ME for factor features is estimated by comparing the change of $\hat{f}(x_S,
 
 The Marginal Effect [ME] for numeric variables is the first derivative of a model with respect to the selected feature at specified values of the covariates. It is estimated by numerically differentiating the fitted prediction function. The ME for factorial features is estimated for each category by comparing the change in prediction compared to a base category while all other variables are held constant.
 
-There are three kinds of Marginal Effects for numeric features. The `ame` package supports all of them:
+There are three kinds of Marginal Effects. The `ame` package supports all of them:
 
 - Average Marginal Effects [AME]: The average slope of the prediction function at observed covariate values.
 - Marginal Effects at the Means [MEM]: The average slope of the prediction function while the values of unselected features are set to their sample means.
@@ -50,7 +50,7 @@ devtools::install_github("compstat-lmu/ame")
 ```
 # Using the package
 
-We start with the computation of AME's. For regression targets the computation of AME's is straightforward:
+We start with the computation of AME's. For regression tasks the computation of AME's is straightforward:
 
 ```r
 library(mlr)
