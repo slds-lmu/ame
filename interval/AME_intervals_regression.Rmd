@@ -1,0 +1,150 @@
+---
+title: AME partition regression example
+date: 2019-02-06
+output:
+  html_document: 
+    toc: yes
+  github_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+urlcolor: blue
+#bibliography: "literature.bib"
+#link-citations: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = TRUE,
+                      cache = TRUE, cache.path = "cache/AME_intervals_regression/",
+                      fig.path = "figures/AME-intervals-regression-")
+library("ggplot2")
+library("mlr")
+library("ame")
+theme_set(theme_light())
+```
+
+## Data generating process
+
+<!-- ### Perfectly Separable, High Correlation -->
+
+<!-- Regression example with two highly correlated features. -->
+
+<!-- ```{r dgp-hi-cor} -->
+<!-- set.seed(4321) -->
+<!-- n = 500 -->
+<!-- x = runif(n, min = 0, max = 1) -->
+<!-- x1 = x + rnorm(n, 0, 0.05) -->
+<!-- x2 = x + rnorm(n, 0, 0.05) -->
+<!-- y2 = function(x) -4 * cos(4*pi*x) * x + 4 -->
+<!-- y = x1 + y2(x2) + rnorm(n, 0, .5) -->
+<!-- df = data.frame(y, x1, x2) -->
+<!-- knitr::kable(head(df)) -->
+<!-- print(cor(x1, x2)) -->
+<!-- ``` -->
+
+### Perfectly Separable, Moderate Correlation
+
+```{r dgp-low-cor}
+set.seed(4321)
+n = 500
+x = runif(n, min = 0, max = 1)
+x1 = runif(n, min=0, max=1) + .5*x
+x2 = runif(n, min=0, max=1) + .5*x
+y2 = function(x) -4 * cos(4*pi*x) * x + 4
+y = 4*x1 + y2(x2) + rnorm(n, 0, .5)
+df = data.frame(y, x1, x2)
+knitr::kable(head(df))
+print(cor(x1, x2))
+```
+
+## Model - neural network
+
+```{r fit-neural-network}
+tsk = makeRegrTask(data = df, target = "y")
+nnet.lrn = makeLearner("regr.nnet", skip = FALSE, size = 20, decay = 0.0001,
+                       maxit = 1000, trace = FALSE)
+nnet.mod = train(nnet.lrn, tsk)
+plotPrediction(nnet.mod, tsk, "x1")$plot
+plotPrediction(nnet.mod, tsk, "x2")$plot
+```
+
+## Comparison of ALE and PDeriv
+
+### Feature 1
+
+```{r feature-1}
+ALE.x1 = computeALE(nnet.mod$learner.model, df, "x1", K = 50)
+plotALE(ALE.x1, derivative = FALSE)
+plotALE(ALE.x1, derivative = TRUE)
+mean(ALE.x1$ale)
+plotPD(computePD(nnet.mod$learner.model, df, "x1", derivative = FALSE))
+PDeriv.x1 = computePD(nnet.mod$learner.model, df, "x1", derivative = TRUE)
+plotPD(PDeriv.x1)
+mean(PDeriv.x1$y.hat)
+```
+
+Average of ALE nearly 4, while average of PDeriv slighty more off.
+Does this indicate ALE is better at representing the marginal effect?
+
+### Feature 2
+
+```{r feature-2}
+ALE.x2 = computeALE(nnet.mod$learner.model, df, "x2", K = 100)
+plotALE(ALE.x2, derivative = TRUE)
+PDeriv.x2 = computePD(nnet.mod$learner.model, df, "x2")
+plotPD(PDeriv.x2)
+# analytical derivation of the additive part of feature 2:
+y2_partial = function(x) 4 * sin(4*pi*x) * 4*pi * x - 4 * cos(4*pi*x)
+mean(y2_partial(x2))
+mean(ALE.x2$ale)
+mean(PDeriv.x2$y.hat)
+```
+
+Again, PDeriv is "worse". *Is this analysis correct?*
+
+## Find intervals of similar MEs
+
+```{r}
+
+```
+
+
+```{r old-code, eval=FALSE}
+
+# partition
+breaks = partition(ALE$ale.x, ALE$ale, 5)
+plotALE(ALE) + geom_vline(xintercept = partition(ALE$ale.x, ALE$ale, 5))
+plotALE(ALE) + geom_vline(xintercept = partition(ALE$ale.x, ALE$ale, 5, part.method = "cluster"))
+
+# compute AME given the intervals
+AME = computeAMEInterval(nnet.mod$learner.model, df, "x2", breaks = breaks)
+AME$AME
+plotAMEInterval(AME)
+
+# add break points "manually"
+AME = computeAMEInterval(nnet.mod$learner.model, df, "x2", breaks = c(0.1, breaks))
+AME$AME
+plotAMEInterval(AME)
+
+# "fully automatic"
+AME2 = computeAMEInterval(nnet.mod$learner.model, df, "x2")
+AME2$AME
+plotAMEInterval(AME2)
+AME2$bounds
+
+# Partial Derivative instead of ALE
+plotPD(computePD(nnet.mod$learner.model, df, "x2", derivative = TRUE, n = 20))
+plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x2", n = 20))
+plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x2", n = 20, individual = TRUE))
+ALEPlot::ALEPlot(df[-1], nnet.mod$learner.model,
+  pred.fun = function(X.model, newdata) predict(X.model, newdata = newdata), J = 2)
+AME.PDeriv = computeAMEInterval(nnet.mod$learner.model, df, "x2", method = "PDeriv") # PDeriv
+plotAMEInterval(AME.PDeriv) + ggtitle("Partial Derivative")
+AME.LDeriv = computeAMEInterval(nnet.mod$learner.model, df, "x2", method = "PDeriv", l = 40) # Local PDeriv
+plotAMEInterval(AME.LDeriv) + ggtitle("Local Partial Derivative, l = 40")
+AME.WDeriv = computeAMEInterval(nnet.mod$learner.model, df, "x2", method = "PDeriv", w = 4) # Weighted PDeriv
+plotAMEInterval(AME.WDeriv) + ggtitle("Weighted Partial Derivative, w = 4")
+```
+
+
+
