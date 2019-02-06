@@ -6,9 +6,9 @@
 #' \itemize{
 #'   \item implement mlr models
 #'   \item factor features
+#'   \item add uniform grid option is useful (what happens to empty intervals?)
 #'   \item minbucket
 #'   \item pass specific interval boundaries (z)
-#'   \item support multi-class (work-around: let predict function return probs of one class)
 #'   \item second-order effects
 #' }
 #'
@@ -84,10 +84,16 @@ computeALE = function(model, data, feature, K = "default", predict.fun = predict
 #' Create ALE Plot
 #'
 #' @param ALE object created by \code{\link{computeALE}}
+#' @param derivative=FALSE If TRUE, plot ALEs, otherwise plot predictions at
+#'        interval limits.
 #'
 #' @return \code{ggplot}
 #' @export
-plotALE = function(ALE) {
-  ggplot(data = ALE$ale.plot.data, aes(x = x, y = f)) + geom_line() + geom_point() +
-    xlab(ALE$feature)
+plotALE = function(ALE, derivative = FALSE) {
+  if (derivative) {
+    ggplot(data.frame(x = ALE$ale.x, ALE = ALE$ale), aes(x = x, y = ALE)) + geom_line() + geom_point() + xlab(ALE$feature)
+  } else {
+    ggplot(data = ALE$ale.plot.data, aes(x = x, y = f)) + geom_line() + geom_point() +
+      xlab(ALE$feature)
+  }
 }
