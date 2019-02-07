@@ -15,7 +15,7 @@ urlcolor: blue
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = TRUE,
-                      cache = TRUE, cache.path = "cache/AME_intervals_regression/",
+                      cache = FALSE, cache.path = "cache/AME_intervals_regression/",
                       fig.path = "figures/AME-intervals-regression-")
 library("ggplot2")
 library("mlr")
@@ -45,7 +45,7 @@ theme_set(theme_light())
 ### Perfectly Separable, Moderate Correlation
 
 ```{r dgp-low-cor}
-set.seed(4321)
+set.seed(4219)
 n = 500
 x = runif(n, min = 0, max = 1)
 x1 = runif(n, min=0, max=1) + .5*x
@@ -67,6 +67,18 @@ nnet.mod = train(nnet.lrn, tsk)
 plotPrediction(nnet.mod, tsk, "x1")$plot
 plotPrediction(nnet.mod, tsk, "x2")$plot
 ```
+
+The plot show the univariate response of the prediction function.
+The blue line is created using loess regression.
+
+## AME
+
+```{r}
+computeAME(nnet.mod, df, c("x1", "x2"))
+```
+
+AME for feature 1 corresponds to the "true" effect.
+For feature 2, AME is less meaningful because of the non-monotonic effect.
 
 ## Comparison of ALE and PDeriv
 
@@ -91,7 +103,7 @@ Does this indicate ALE is better at representing the marginal effect?
 ```{r feature-2}
 ALE.x2 = computeALE(nnet.mod$learner.model, df, "x2", K = 100)
 plotALE(ALE.x2, derivative = TRUE)
-PDeriv.x2 = computePD(nnet.mod$learner.model, df, "x2")
+PDeriv.x2 = computePD(nnet.mod$learner.model, df, "x2", derivative = TRUE)
 plotPD(PDeriv.x2)
 # analytical derivation of the additive part of feature 2:
 y2_partial = function(x) 4 * sin(4*pi*x) * 4*pi * x - 4 * cos(4*pi*x)
@@ -100,51 +112,112 @@ mean(ALE.x2$ale)
 mean(PDeriv.x2$y.hat)
 ```
 
+AME and average ALE correspond to "true" effect (= average partial derivative).
 Again, PDeriv is "worse". *Is this analysis correct?*
 
 ## Find intervals of similar MEs
 
+### Feature 2
+
 ```{r}
-
+breaks = partition(ALE.x2$ale.x, ALE.x2$ale, 5)
+plotALE(ALE.x2, derivative = TRUE) + geom_vline(xintercept = breaks)
+plotALE(ALE.x2) + geom_vline(xintercept = partition(ALE.x2$ale.x, ALE.x2$ale, 5,
+                                                 part.method = "cluster"))
 ```
 
+rpart returns reasonable intervals. Clustering does not work here.
 
-```{r old-code, eval=FALSE}
+#### Compute AME given the intervals
 
-# partition
-breaks = partition(ALE$ale.x, ALE$ale, 5)
-plotALE(ALE) + geom_vline(xintercept = partition(ALE$ale.x, ALE$ale, 5))
-plotALE(ALE) + geom_vline(xintercept = partition(ALE$ale.x, ALE$ale, 5, part.method = "cluster"))
-
-# compute AME given the intervals
-AME = computeAMEInterval(nnet.mod$learner.model, df, "x2", breaks = breaks)
-AME$AME
-plotAMEInterval(AME)
-
-# add break points "manually"
-AME = computeAMEInterval(nnet.mod$learner.model, df, "x2", breaks = c(0.1, breaks))
-AME$AME
-plotAMEInterval(AME)
-
-# "fully automatic"
-AME2 = computeAMEInterval(nnet.mod$learner.model, df, "x2")
-AME2$AME
-plotAMEInterval(AME2)
-AME2$bounds
-
-# Partial Derivative instead of ALE
-plotPD(computePD(nnet.mod$learner.model, df, "x2", derivative = TRUE, n = 20))
-plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x2", n = 20))
-plotPartialDependence(generatePartialDependenceData(nnet.mod, tsk, "x2", n = 20, individual = TRUE))
-ALEPlot::ALEPlot(df[-1], nnet.mod$learner.model,
-  pred.fun = function(X.model, newdata) predict(X.model, newdata = newdata), J = 2)
-AME.PDeriv = computeAMEInterval(nnet.mod$learner.model, df, "x2", method = "PDeriv") # PDeriv
-plotAMEInterval(AME.PDeriv) + ggtitle("Partial Derivative")
-AME.LDeriv = computeAMEInterval(nnet.mod$learner.model, df, "x2", method = "PDeriv", l = 40) # Local PDeriv
-plotAMEInterval(AME.LDeriv) + ggtitle("Local Partial Derivative, l = 40")
-AME.WDeriv = computeAMEInterval(nnet.mod$learner.model, df, "x2", method = "PDeriv", w = 4) # Weighted PDeriv
-plotAMEInterval(AME.WDeriv) + ggtitle("Weighted Partial Derivative, w = 4")
+```{r}
+AME.x2 = computeAMEInterval(nnet.mod$learner.model, df, "x2", breaks = breaks)
+AME.x2$AME
+plotAMEInterval(AME.x2)
 ```
 
+We check the result by calculating the "true" effect in each interval
+using the analytically calculated partial derivative.
 
+```{r}
+bounds = unique(c(min(x2), sort(breaks), max(x2) + 0.00001))
+l = length(bounds) - 1
+true.effects = numeric(l)
+for (i in 1:l) {
+  selection = x2 >= bounds[i] & x2 < bounds[i+1]
+  df.interval = df[selection,]
+  true.effects[i] = mean(y2_partial(x2[selection]))
+}
+AME.x2$AME
+true.effects
+```
 
+Checks out.
+
+#### Add break point "manually"
+
+An additional break point at around .25 might be sensible. We add it and calculate
+AMEs for each interval again.
+
+```{r}
+AME.x2.add.break.point = computeAMEInterval(nnet.mod$learner.model, df, "x2",
+                                            breaks = c(0.25, breaks))
+AME.x2.add.break.point$AME
+plotAMEInterval(AME.x2.add.break.point)
+```
+
+#### Fully automatic
+
+*computeAMEInterval* calculates breaks points by default:
+
+```{r}
+AME.x2.auto = computeAMEInterval(nnet.mod$learner.model, df, "x2")
+AME.x2.auto$AME
+plotAMEInterval(AME.x2.auto)
+AME.x2.auto$bounds
+```
+
+#### Use PDeriv
+
+```{r}
+AME.x2.PDeriv = computeAMEInterval(nnet.mod$learner.model, df, "x2",
+                                method = "PDeriv")
+AME.x2.PDeriv$AME
+plotAMEInterval(AME.x2.PDeriv) + ggtitle("Partial Derivative")
+```
+
+Less sensible break points? Check true effect for each interval:
+
+```{r}
+bounds = AME.x2.PDeriv$bounds
+l = length(bounds) - 1
+true.effects = numeric(l)
+for (i in 1:l) {
+  selection = x2 >= bounds[i] & x2 < bounds[i+1]
+  df.interval = df[selection,]
+  true.effects[i] = mean(y2_partial(x2[selection]))
+}
+true.effects
+```
+
+Matches.
+
+#### Local PDeriv
+
+```{r}
+AME.x2.LDeriv = computeAMEInterval(nnet.mod$learner.model, df, "x2",
+                                method = "PDeriv", l = 40)
+plotAMEInterval(AME.x2.LDeriv) + ggtitle("Local Partial Derivative, l = 40")
+```
+
+No difference to PDeriv.
+
+#### Weighted PDeriv
+
+```{r}
+AME.x2.WDeriv = computeAMEInterval(nnet.mod$learner.model, df, "x2",
+                                method = "PDeriv", w = 4)
+plotAMEInterval(AME.x2.WDeriv) + ggtitle("Weighted Partial Derivative, w = 4")
+```
+
+No difference to PDeriv.
