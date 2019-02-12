@@ -196,7 +196,7 @@ compAME(rf.mod.mlr, fuel.tsk, names(df)[-1], parallel = TRUE)
 ## numeric and categorical features
 
 ```{r dgp-numeric-and-binary}
-n = 100
+n = 500
 bin1 = rbinom(n, 1, prob = .75)
 bin2 = (rbinom(n, 1, prob = .35) + 2) * 2
 cat1.map = setNames(c(0,-2,2,6), c("blue", "red2", "red", "green"))
@@ -227,6 +227,13 @@ computeAME(lm.mod, df, names(df)[-1])
 unlist(compAME(lm.mod, df, names(df)[-1]))
 system.time(computeAME(lm.mod, df, names(df)[-1]))
 system.time(compAME(lm.mod, df, names(df)[-1]))
+
+df2 = df
+df2$logic1 = as.factor(df2$logic1)
+tsk = makeRegrTask(data = df2, target = "y")
+lrn = makeLearner("regr.lm")
+lm.mod.mlr = train(lrn, tsk)
+plotPartialDependence(generatePartialDependenceData(lm.mod.mlr, tsk, "ord1", derivative = TRUE))
 ```
 
 ```{r}

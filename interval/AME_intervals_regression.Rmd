@@ -57,6 +57,8 @@ knitr::kable(head(df))
 print(cor(x1, x2))
 ```
 
+TODO: Print true reponses.
+
 ## Model - neural network
 
 ```{r fit-neural-network}
@@ -77,6 +79,8 @@ The blue line is created using loess regression.
 computeAME(nnet.mod, df, c("x1", "x2"))
 ```
 
+TODO: Formel AME
+
 AME for feature 1 corresponds to the "true" effect.
 For feature 2, AME is less meaningful because of the non-monotonic effect.
 
@@ -94,6 +98,8 @@ PDeriv.x1 = computePD(nnet.mod$learner.model, df, "x1", derivative = TRUE)
 plotPD(PDeriv.x1)
 mean(PDeriv.x1$y.hat)
 ```
+
+TODO: PD uniform=FALSE
 
 Average of ALE nearly 4, while average of PDeriv slighty more off.
 Does this indicate ALE is better at representing the marginal effect?
@@ -121,7 +127,7 @@ Again, PDeriv is "worse". *Is this analysis correct?*
 
 ```{r}
 breaks = partition(ALE.x2$ale.x, ALE.x2$ale, 5)
-plotALE(ALE.x2, derivative = TRUE) + geom_vline(xintercept = breaks)
+plotALE(ALE.x2, derivative = FALSE) + geom_vline(xintercept = breaks)
 plotALE(ALE.x2) + geom_vline(xintercept = partition(ALE.x2$ale.x, ALE.x2$ale, 5,
                                                  part.method = "cluster"))
 ```
